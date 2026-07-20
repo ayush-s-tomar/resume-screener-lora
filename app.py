@@ -183,8 +183,22 @@ def load_model():
     return model, tokenizer
 
 
-def screen_resume(model, tokenizer, resume_text: str, role: str) -> dict:
-    prompt = f"Screen this resume for a {role} position and return a structured verdict.\n\nResume: {resume_text}"
+def find_list_by_keyword(d: dict, keyword: str) -> list:
+    """Return the first list-valued field whose key contains `keyword`.
+    Guards against the model varying field names (matched_skills,
+    matched_stages, matched_stacks_used, etc.)."""
+    for k, v in d.items():
+        if keyword in k.lower() and isinstance(v, list):
+            return v
+    return []
+
+
+def screen_resume(model, tokenizer, resume_text: str, role: str, retry: bool = True) -> dict:
+    prompt = f"Screen this resume for a {role} position and return a structured verdict."
+    if retry:
+        prompt += " Return ONLY a single valid JSON object, no other text, no truncation."
+    prompt += f"\n\nResume: {resume_text}"
+
     messages = [{"role": "user", "content": prompt}]
     inputs = tokenizer.apply_chat_template(
         messages, tokenize=True, add_generation_prompt=True, return_tensors="pt"
@@ -192,12 +206,17 @@ def screen_resume(model, tokenizer, resume_text: str, role: str) -> dict:
     input_ids = inputs.input_ids if hasattr(inputs, "input_ids") else inputs
     input_ids = input_ids.to(model.device)
 
-    output = model.generate(input_ids, max_new_tokens=150, do_sample=False)
+    # 300 tokens gives headroom over the previous 150, which was likely
+    # truncating longer JSON verdicts mid-field.
+    output = model.generate(input_ids, max_new_tokens=300, do_sample=False)
     raw = tokenizer.decode(output[0][input_ids.shape[1]:], skip_special_tokens=True)
 
     try:
         return json.loads(raw)
     except json.JSONDecodeError:
+        if retry:
+            # One retry with a stricter instruction before giving up.
+            return screen_resume(model, tokenizer, resume_text, role, retry=False)
         return {"raw_output": raw, "parse_error": True}
 
 
@@ -259,8 +278,8 @@ if run:
         verdict_label = verdict.get("verdict", "unknown")
         tone = "moderate" if "moderate" in verdict_label else ("weak" if "weak" in verdict_label or "poor" in verdict_label else "")
 
-        matched = verdict.get("matched_skills") or verdict.get("matched_stages") or []
-        missing = verdict.get("missing_skills") or verdict.get("missing_stages") or []
+        matched = find_list_by_keyword(verdict, "match")
+        missing = find_list_by_keyword(verdict, "missing")
 
         matched_html = ""
         if matched:
