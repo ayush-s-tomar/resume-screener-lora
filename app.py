@@ -11,7 +11,7 @@ from peft import PeftModel
 BASE_MODEL = "Qwen/Qwen2.5-0.5B-Instruct"
 ADAPTER_PATH = "./resume-screener-lora-adapter"
 
-st.set_page_config(page_title="Resume Screener · LoRA fine-tuned", page_icon="🎯", layout="centered")
+st.set_page_config(page_title="Resume Screener · LoRA fine-tuned", page_icon="📊", layout="centered")
 
 HF_TOKEN = st.secrets.get("HF_TOKEN", None)
 
@@ -193,7 +193,7 @@ def screen_resume(model, tokenizer, resume_text: str, role: str) -> dict:
 st.markdown(
     """
     <div class="hero">
-        <h1>🎯 Resume Screener</h1>
+        <h1>📊 Resume Screener</h1>
         <p>LoRA fine-tuned Qwen2.5-0.5B-Instruct — outputs structured JSON verdicts instead of prose,
         so it can be piped straight into an ATS pipeline.</p>
         <div class="badge-row">
@@ -221,7 +221,7 @@ with st.expander("How this model works"):
 # Input
 # ---------------------------------------------------------------------------
 st.markdown('<div class="section-card">', unsafe_allow_html=True)
-role = st.text_input("🎯 Target role", placeholder="e.g. Backend Engineer")
+role = st.text_input("🧭 Target role", placeholder="e.g. Backend Engineer")
 resume_text = st.text_area(
     "📄 Resume text",
     height=180,
@@ -246,53 +246,47 @@ if run:
         verdict_label = verdict.get("verdict", "unknown")
         tone = "moderate" if "moderate" in verdict_label else ("weak" if "weak" in verdict_label or "poor" in verdict_label else "")
 
-        st.markdown(f'<div class="verdict-card {tone}">', unsafe_allow_html=True)
-
-        st.markdown('<div class="metric-row">', unsafe_allow_html=True)
-        st.markdown(
-            f"""
-            <div class="metric-box">
-                <div class="label">ATS Score</div>
-                <div class="value">{score}</div>
-            </div>
-            <div class="metric-box">
-                <div class="label">Verdict</div>
-                <div class="value" style="font-size:1.1rem; text-transform:capitalize;">
-                    {verdict_label.replace('_', ' ')}
-                </div>
-            </div>
-            <div class="metric-box">
-                <div class="label">Years Experience</div>
-                <div class="value">{verdict.get('years_experience', '—')}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.markdown("</div>", unsafe_allow_html=True)
-
-        st.markdown(
-            f"""
-            <div class="score-bar-track">
-                <div class="score-bar-fill" style="width:{min(score, 100)}%;"></div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
         matched = verdict.get("matched_skills", [])
         missing = verdict.get("missing_skills", [])
 
+        matched_html = ""
         if matched:
-            st.markdown('<div class="subhead">Matched skills</div>', unsafe_allow_html=True)
             chips = "".join(f'<span class="chip matched">✓ {s}</span>' for s in matched)
-            st.markdown(f'<div class="chip-row">{chips}</div>', unsafe_allow_html=True)
+            matched_html = f'<div class="subhead">Matched skills</div><div class="chip-row">{chips}</div>'
 
+        missing_html = ""
         if missing:
-            st.markdown('<div class="subhead">Missing skills</div>', unsafe_allow_html=True)
             chips = "".join(f'<span class="chip missing">✕ {s}</span>' for s in missing)
-            st.markdown(f'<div class="chip-row">{chips}</div>', unsafe_allow_html=True)
+            missing_html = f'<div class="subhead">Missing skills</div><div class="chip-row">{chips}</div>'
 
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown(
+            f"""
+            <div class="verdict-card {tone}">
+                <div class="metric-row">
+                    <div class="metric-box">
+                        <div class="label">ATS Score</div>
+                        <div class="value">{score}</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="label">Verdict</div>
+                        <div class="value" style="font-size:1.1rem; text-transform:capitalize;">
+                            {verdict_label.replace('_', ' ')}
+                        </div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="label">Years Experience</div>
+                        <div class="value">{verdict.get('years_experience', '—')}</div>
+                    </div>
+                </div>
+                <div class="score-bar-track">
+                    <div class="score-bar-fill" style="width:{min(score, 100)}%;"></div>
+                </div>
+                {matched_html}
+                {missing_html}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
         with st.expander("Raw JSON output"):
             st.json(verdict)
