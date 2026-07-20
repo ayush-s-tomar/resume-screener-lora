@@ -259,8 +259,8 @@ if run:
         verdict_label = verdict.get("verdict", "unknown")
         tone = "moderate" if "moderate" in verdict_label else ("weak" if "weak" in verdict_label or "poor" in verdict_label else "")
 
-        matched = verdict.get("matched_skills", [])
-        missing = verdict.get("missing_skills", [])
+        matched = verdict.get("matched_skills") or verdict.get("matched_stages") or []
+        missing = verdict.get("missing_skills") or verdict.get("missing_stages") or []
 
         matched_html = ""
         if matched:
