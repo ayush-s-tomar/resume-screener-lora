@@ -1,9 +1,18 @@
-﻿# Resume Screener — LoRA Fine-Tuned (Qwen2.5-0.5B)
+# Resume Screener — LoRA Fine-Tuned (Qwen2.5-0.5B)
 
 Fine-tuned Qwen2.5-0.5B-Instruct using LoRA to output structured JSON verdicts
 for resume screening, instead of relying on prompting alone.
 
+![Resume Screener demo](Resume%20Screener%20Lora.gif)
+
+## Demo
+
+https://github.com/user-attachments/assets/3328d75d-4e17-41aa-95d9-09d8749e6c41
+
+![Resume Screener app screenshot](Resume%20Screener%20Lora%20Demo.png)
+
 ## Why
+
 Prompting a base instruct model for resume screening produces unstructured,
 inconsistent prose — not something you can pipe into an ATS or scoring
 pipeline. This project fine-tunes a small open model so structured JSON
@@ -11,6 +20,7 @@ output becomes the model's default behavior, not something you have to
 coax out with prompt engineering.
 
 ## Approach
+
 - Base model: Qwen2.5-0.5B-Instruct
 - Method: LoRA (r=16, alpha=32, dropout=0.05) targeting q/k/v/o projections
 - Trainable params: 2,162,688 / 496,195,456 total (0.44%)
@@ -42,9 +52,11 @@ experience, skilled in Python, PostgreSQL, Docker, Kubernetes.
 ```
 
 ## Repo structure
+
 - `finetune_lora.ipynb` - full training notebook
 - `data/` - train/eval JSONL datasets + dataset generator script
 - `resume-screener-lora-adapter/` - trained LoRA adapter weights
 
 ## Stack
+
 PEFT/LoRA, Hugging Face Transformers, TRL, PyTorch, Colab T4 GPU
