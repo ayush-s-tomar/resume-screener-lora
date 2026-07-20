@@ -34,10 +34,12 @@ def screen_resume(model, tokenizer, resume_text: str, role: str) -> dict:
     messages = [{"role": "user", "content": prompt}]
     inputs = tokenizer.apply_chat_template(
         messages, tokenize=True, add_generation_prompt=True, return_tensors="pt"
-    ).to(model.device)
+    )
+    input_ids = inputs.input_ids if hasattr(inputs, "input_ids") else inputs
+    input_ids = input_ids.to(model.device)
 
-    output = model.generate(inputs, max_new_tokens=150, do_sample=False)
-    raw = tokenizer.decode(output[0][inputs.shape[1]:], skip_special_tokens=True)
+    output = model.generate(input_ids, max_new_tokens=150, do_sample=False)
+    raw = tokenizer.decode(output[0][input_ids.shape[1]:], skip_special_tokens=True)
 
     try:
         return json.loads(raw)
