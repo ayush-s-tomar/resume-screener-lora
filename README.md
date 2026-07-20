@@ -1,15 +1,23 @@
-﻿# Resume Screener — LoRA Fine-Tuned (Qwen2.5-0.5B)
+# Resume Screener — LoRA Fine-Tuned (Qwen2.5-0.5B)
 
 Fine-tuned Qwen2.5-0.5B-Instruct using LoRA to output structured JSON verdicts
 for resume screening, instead of relying on prompting alone.
 
+<<<<<<< HEAD
 ![Resume Screener demo](assets/resume-screener-demo.gif)
+=======
+![Resume Screener demo](Resume%20Screener%20Lora.gif)
+>>>>>>> 324655445e1e7ec272a8b4020e5935c223913ce1
 
 ## Demo
 
 https://github.com/user-attachments/assets/3328d75d-4e17-41aa-95d9-09d8749e6c41
 
+<<<<<<< HEAD
 ![Resume Screener app screenshot](assets/resume-screener-screenshot.png)
+=======
+![Resume Screener app screenshot](Resume%20Screener%20Lora%20Demo.png)
+>>>>>>> 324655445e1e7ec272a8b4020e5935c223913ce1
 
 ## Why
 
@@ -59,4 +67,8 @@ experience, skilled in Python, PostgreSQL, Docker, Kubernetes.
 
 ## Stack
 
+<<<<<<< HEAD
 PEFT/LoRA, Hugging Face Transformers, TRL, PyTorch, Colab T4 GPU
+=======
+PEFT/LoRA, Hugging Face Transformers, TRL, PyTorch, Colab T4 GPU
+>>>>>>> 324655445e1e7ec272a8b4020e5935c223913ce1
