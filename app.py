@@ -13,12 +13,16 @@ ADAPTER_PATH = "./resume-screener-lora-adapter"
 
 st.set_page_config(page_title="Resume Screener (LoRA fine-tuned)", page_icon="📄", layout="centered")
 
+# Optional HF token for authenticated (higher rate limit) downloads.
+# Falls back to anonymous access if not set, so this is safe even without secrets configured.
+HF_TOKEN = st.secrets.get("HF_TOKEN", None)
+
 
 @st.cache_resource(show_spinner="Loading fine-tuned model (first request only, ~30-60s)...")
 def load_model():
-    tokenizer = AutoTokenizer.from_pretrained(ADAPTER_PATH)
+    tokenizer = AutoTokenizer.from_pretrained(ADAPTER_PATH, token=HF_TOKEN)
     base_model = AutoModelForCausalLM.from_pretrained(
-        BASE_MODEL, torch_dtype="auto", device_map="cpu"
+        BASE_MODEL, torch_dtype="auto", device_map="cpu", token=HF_TOKEN
     )
     model = PeftModel.from_pretrained(base_model, ADAPTER_PATH)
     model.eval()
