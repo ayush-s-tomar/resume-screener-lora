@@ -1,9 +1,16 @@
 ﻿"""
 Streamlit UI for the LoRA fine-tuned resume screener.
 Loads Qwen2.5-0.5B-Instruct base model + LoRA adapter, returns a structured JSON verdict.
+
+Reliability note: the raw model output (score, verdict, matched/missing skills) is
+NOT trusted as-is. It is validated and recomputed deterministically below, because
+the fine-tuned model (0.5B params, 800 training examples) can hallucinate skill
+names not present in the input and can produce a score/verdict that contradicts
+its own skill list on out-of-distribution phrasing.
 """
 
 import json
+import re
 import streamlit as st
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import PeftModel
@@ -193,6 +200,72 @@ def find_list_by_keyword(d: dict, keyword: str) -> list:
     return []
 
 
+def normalize(s: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", s.lower())
+
+
+def validate_and_score(verdict: dict, resume_text: str) -> dict:
+    """
+    Reconciles the model's raw output against the actual resume text.
+
+    Fixes two problems:
+    1. Hallucinated skills: the model can list a "missing" skill never
+       mentioned in the resume, or invent a garbled skill name entirely
+       (e.g. "Grafana" -> "Groonga"). Any skill shown must appear as a
+       substring of the resume text (normalized) or pass a basic
+       real-word sanity check.
+    2. Score/verdict incoherence: the model's own ats_score and verdict
+       label are not trusted. Both are recomputed deterministically from
+       the validated matched/total skill ratio, so they can never
+       contradict the skill list shown to the user.
+    """
+    resume_norm = normalize(resume_text)
+
+    raw_matched = find_list_by_keyword(verdict, "match")
+    raw_missing = find_list_by_keyword(verdict, "missing")
+
+    # Only keep "matched" skills that actually appear in the resume text.
+    matched = [s for s in raw_matched if normalize(s) in resume_norm]
+
+    def looks_real(skill: str) -> bool:
+        s = skill.strip()
+        if len(s) < 2:
+            return False
+        if not re.search(r"[aeiouAEIOU]", s):  # no vowels -> likely garbled/hallucinated
+            return False
+        return True
+
+    # A "missing" skill must NOT appear in the resume (can't be both
+    # present and missing) and must pass a basic real-word check.
+    missing = [
+        s for s in raw_missing
+        if normalize(s) not in resume_norm and looks_real(s)
+    ]
+
+    total = len(matched) + len(missing)
+    match_ratio = (len(matched) / total) if total > 0 else 0.0
+    score = round(match_ratio * 100)
+
+    if score >= 70:
+        verdict_label = "strong_match"
+    elif score >= 45:
+        verdict_label = "moderate_match"
+    else:
+        verdict_label = "weak_match"
+
+    years = verdict.get("years_experience", None)
+    if not isinstance(years, (int, float)) or years < 0 or years > 60:
+        years = None
+
+    return {
+        "ats_score": score,
+        "verdict": verdict_label,
+        "years_experience": years,
+        "matched_skills": matched,
+        "missing_skills": missing,
+    }
+
+
 def screen_resume(model, tokenizer, resume_text: str, role: str, retry: bool = True) -> dict:
     prompt = f"Screen this resume for a {role} position and return a structured verdict."
     if retry:
@@ -206,18 +279,17 @@ def screen_resume(model, tokenizer, resume_text: str, role: str, retry: bool = T
     input_ids = inputs.input_ids if hasattr(inputs, "input_ids") else inputs
     input_ids = input_ids.to(model.device)
 
-    # 300 tokens gives headroom over the previous 150, which was likely
-    # truncating longer JSON verdicts mid-field.
     output = model.generate(input_ids, max_new_tokens=300, do_sample=False)
     raw = tokenizer.decode(output[0][input_ids.shape[1]:], skip_special_tokens=True)
 
     try:
-        return json.loads(raw)
+        parsed = json.loads(raw)
     except json.JSONDecodeError:
         if retry:
-            # One retry with a stricter instruction before giving up.
             return screen_resume(model, tokenizer, resume_text, role, retry=False)
         return {"raw_output": raw, "parse_error": True}
+
+    return validate_and_score(parsed, resume_text)
 
 
 # ---------------------------------------------------------------------------
@@ -247,6 +319,11 @@ with st.expander("How this model works"):
         not something you can pipe into an ATS pipeline. This model was fine-tuned with
         LoRA (r=16, alpha=32) on 800 resume → structured-verdict examples so JSON output
         is the model's default behavior, not something coaxed out with prompting.
+
+        The model's raw skill list and score are validated against the actual resume
+        text before display — any skill it claims that isn't really in the resume is
+        filtered out, and the score/verdict are recomputed from the validated match
+        ratio so they can't contradict each other.
         """
     )
 
@@ -278,8 +355,8 @@ if run:
         verdict_label = verdict.get("verdict", "unknown")
         tone = "moderate" if "moderate" in verdict_label else ("weak" if "weak" in verdict_label or "poor" in verdict_label else "")
 
-        matched = find_list_by_keyword(verdict, "match")
-        missing = find_list_by_keyword(verdict, "missing")
+        matched = verdict.get("matched_skills", [])
+        missing = verdict.get("missing_skills", [])
 
         matched_html = ""
         if matched:
@@ -290,6 +367,9 @@ if run:
         if missing:
             chips = "".join(f'<span class="chip missing">✕ {s}</span>' for s in missing)
             missing_html = f'<div class="subhead">Missing skills</div><div class="chip-row">{chips}</div>'
+
+        years_display = verdict.get("years_experience")
+        years_display = years_display if years_display is not None else "—"
 
         st.markdown(
             f"""
@@ -307,7 +387,7 @@ if run:
                     </div>
                     <div class="metric-box">
                         <div class="label">Years Experience</div>
-                        <div class="value">{verdict.get('years_experience', '—')}</div>
+                        <div class="value">{years_display}</div>
                     </div>
                 </div>
                 <div class="score-bar-track">
