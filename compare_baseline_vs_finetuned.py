@@ -31,7 +31,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import PeftModel
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B-Instruct"
-ADAPTER_PATH = "./resume-screener-lora-final"
+ADAPTER_PATH = "./resume-screener-lora-adapter"
 EVAL_PATH = "./data/eval.jsonl"
 EVAL_LIMIT = int(os.environ.get("EVAL_LIMIT", "0"))  # 0 = no limit, use full eval set
 
