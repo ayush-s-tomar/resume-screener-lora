@@ -1,0 +1,8 @@
+venv/
+__pycache__/
+*.pyc
+resume-screener-lora-final/
+resume-screener-lora-final.zip
+resume-screener-lora/
+comparison_results.json
+.ipynb_checkpoints/
