@@ -15,9 +15,16 @@ unzipping it into this project folder.
 
 Usage:
     python compare_baseline_vs_finetuned.py
+
+Env vars:
+    EVAL_LIMIT  Optional. If set to a positive integer, only the first N
+                eval examples are used. Useful for CI, where running the
+                full eval set on CPU runners would take too long.
+                Leave unset (or "0") to run the full eval set.
 """
 
 import json
+import os
 import re
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -26,6 +33,7 @@ from peft import PeftModel
 MODEL_NAME = "Qwen/Qwen2.5-0.5B-Instruct"
 ADAPTER_PATH = "./resume-screener-lora-final"
 EVAL_PATH = "./data/eval.jsonl"
+EVAL_LIMIT = int(os.environ.get("EVAL_LIMIT", "0"))  # 0 = no limit, use full eval set
 
 ZERO_SHOT_INSTRUCTION = (
     "You are a resume screening assistant. Given a resume, respond with ONLY "
@@ -102,9 +110,14 @@ def score_predictions(predictions, ground_truths):
 
 def main():
     eval_examples = load_eval_set(EVAL_PATH)
+
+    if EVAL_LIMIT:
+        eval_examples = eval_examples[:EVAL_LIMIT]
+        print(f"EVAL_LIMIT set: using first {len(eval_examples)} eval examples", flush=True)
+
     ground_truths = [json.loads(ex["completion"]) for ex in eval_examples]
 
-    print(f"Loaded {len(eval_examples)} eval examples\n")
+    print(f"Loaded {len(eval_examples)} eval examples\n", flush=True)
 
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     if tokenizer.pad_token is None:
@@ -115,39 +128,41 @@ def main():
     )
 
     # --- Zero-shot baseline ---
-    print("Running zero-shot baseline...")
+    print("Running zero-shot baseline...", flush=True)
     zero_shot_preds = []
-    for ex in eval_examples:
+    for i, ex in enumerate(eval_examples, 1):
         messages = [
             {"role": "system", "content": ZERO_SHOT_INSTRUCTION},
             {"role": "user", "content": ex["prompt"]},
         ]
         zero_shot_preds.append(generate(base_model, tokenizer, messages))
+        print(f"  zero-shot {i}/{len(eval_examples)}", flush=True)
 
     zero_shot_results = score_predictions(zero_shot_preds, ground_truths)
 
     # --- Fine-tuned model ---
-    print("Loading fine-tuned adapter and running eval...")
+    print("Loading fine-tuned adapter and running eval...", flush=True)
     finetuned_model = PeftModel.from_pretrained(base_model, ADAPTER_PATH)
     finetuned_preds = []
-    for ex in eval_examples:
+    for i, ex in enumerate(eval_examples, 1):
         messages = [{"role": "user", "content": ex["prompt"]}]
         finetuned_preds.append(generate(finetuned_model, tokenizer, messages))
+        print(f"  fine-tuned {i}/{len(eval_examples)}", flush=True)
 
     finetuned_results = score_predictions(finetuned_preds, ground_truths)
 
-    print("\n" + "=" * 50)
-    print("RESULTS")
-    print("=" * 50)
-    print(f"{'Metric':<28} {'Zero-shot':<12} {'Fine-tuned':<12}")
-    print("-" * 50)
-    print(f"{'Valid JSON rate':<28} {zero_shot_results['valid_json_rate']:<12} {finetuned_results['valid_json_rate']:<12}")
-    print(f"{'Verdict accuracy':<28} {zero_shot_results['verdict_accuracy']:<12} {finetuned_results['verdict_accuracy']:<12}")
-    print(f"{'Mean abs score error':<28} {zero_shot_results['mean_absolute_score_error']:<12} {finetuned_results['mean_absolute_score_error']:<12}")
+    print("\n" + "=" * 50, flush=True)
+    print("RESULTS", flush=True)
+    print("=" * 50, flush=True)
+    print(f"{'Metric':<28} {'Zero-shot':<12} {'Fine-tuned':<12}", flush=True)
+    print("-" * 50, flush=True)
+    print(f"{'Valid JSON rate':<28} {zero_shot_results['valid_json_rate']:<12} {finetuned_results['valid_json_rate']:<12}", flush=True)
+    print(f"{'Verdict accuracy':<28} {zero_shot_results['verdict_accuracy']:<12} {finetuned_results['verdict_accuracy']:<12}", flush=True)
+    print(f"{'Mean abs score error':<28} {zero_shot_results['mean_absolute_score_error']:<12} {finetuned_results['mean_absolute_score_error']:<12}", flush=True)
 
     with open("comparison_results.json", "w") as f:
         json.dump({"zero_shot": zero_shot_results, "fine_tuned": finetuned_results}, f, indent=2)
-    print("\nSaved full results to comparison_results.json")
+    print("\nSaved full results to comparison_results.json", flush=True)
 
 
 if __name__ == "__main__":

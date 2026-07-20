@@ -49,5 +49,7 @@ jobs:
 
       - name: Run baseline vs fine-tuned comparison
         run: |
-          python compare_baseline_vs_finetuned.py
+          python -u compare_baseline_vs_finetuned.py
+        env:
+          EVAL_LIMIT: "10"
         continue-on-error: true
