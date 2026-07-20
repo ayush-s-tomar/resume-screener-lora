@@ -56,11 +56,23 @@ def extract_json(text):
 
 
 def generate(model, tokenizer, messages, max_new_tokens=200):
+    # return_dict=True forces a proper BatchEncoding with input_ids + attention_mask,
+    # instead of relying on the (version-dependent) default, which can return either
+    # a raw tensor or a dict depending on the transformers version installed.
     inputs = tokenizer.apply_chat_template(
-        messages, tokenize=True, add_generation_prompt=True, return_tensors="pt"
+        messages,
+        tokenize=True,
+        add_generation_prompt=True,
+        return_tensors="pt",
+        return_dict=True,
     ).to(model.device)
-    output = model.generate(inputs, max_new_tokens=max_new_tokens, do_sample=False)
-    return tokenizer.decode(output[0][inputs.shape[1]:], skip_special_tokens=True)
+
+    output = model.generate(
+        **inputs, max_new_tokens=max_new_tokens, do_sample=False
+    )
+
+    input_len = inputs["input_ids"].shape[1]
+    return tokenizer.decode(output[0][input_len:], skip_special_tokens=True)
 
 
 def score_predictions(predictions, ground_truths):
