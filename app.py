@@ -58,14 +58,6 @@ st.markdown(
         margin-right: 6px;
     }
 
-    .section-card {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.07);
-        border-radius: 14px;
-        padding: 1.4rem 1.5rem;
-        margin-bottom: 1.2rem;
-    }
-
     .verdict-card {
         background: linear-gradient(135deg, rgba(34,197,94,0.10), rgba(16,185,129,0.04));
         border: 1px solid rgba(52,211,153,0.28);
@@ -152,6 +144,28 @@ st.markdown(
         margin-top: 2rem;
     }
     .footer-caption a { color: #93c5fd; text-decoration: none; }
+
+    div[data-testid="stVerticalBlockBorderWrapper"] {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.09) !important;
+        border-radius: 14px !important;
+    }
+
+    div[data-testid="stExpander"] {
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 12px !important;
+        background: rgba(255,255,255,0.02);
+    }
+
+    .stButton > button {
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+        transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+    .stButton > button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(239,68,68,0.28);
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -220,15 +234,14 @@ with st.expander("How this model works"):
 # ---------------------------------------------------------------------------
 # Input
 # ---------------------------------------------------------------------------
-st.markdown('<div class="section-card">', unsafe_allow_html=True)
-role = st.text_input("🧭 Target role", placeholder="e.g. Backend Engineer")
-resume_text = st.text_area(
-    "📄 Resume text",
-    height=180,
-    placeholder="Paste resume text here (education, experience, skills)...",
-)
-run = st.button("Screen resume →", type="primary", disabled=not (role and resume_text), use_container_width=True)
-st.markdown("</div>", unsafe_allow_html=True)
+with st.container(border=True):
+    role = st.text_input("🧭 Target role", placeholder="e.g. Product Manager, Data Analyst, DevOps Engineer")
+    resume_text = st.text_area(
+        "📄 Resume text",
+        height=180,
+        placeholder="Paste resume text here (education, experience, skills)...",
+    )
+    run = st.button("Screen resume →", type="primary", disabled=not (role and resume_text), use_container_width=True)
 
 # ---------------------------------------------------------------------------
 # Output
