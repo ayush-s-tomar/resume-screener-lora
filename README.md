@@ -4,20 +4,34 @@ Fine-tuned Qwen2.5-0.5B-Instruct using LoRA to output structured JSON verdicts
 for resume screening, instead of relying on prompting alone.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 ![Resume Screener demo](assets/resume-screener-demo.gif)
 =======
 ![Resume Screener demo](Resume%20Screener%20Lora.gif)
 >>>>>>> 324655445e1e7ec272a8b4020e5935c223913ce1
+=======
+![Resume Screener demo](Resume%20Screener%20Lora.gif)
+=======
+![Resume Screener demo](assets/resume-screener-demo.gif)
+>>>>>>> 07700d8 (Move demo assets into assets/ folder, update README)
+>>>>>>> 0187272 (Add missing demo GIF and screenshot files)
 
 ## Demo
 
 https://github.com/user-attachments/assets/3328d75d-4e17-41aa-95d9-09d8749e6c41
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 ![Resume Screener app screenshot](assets/resume-screener-screenshot.png)
 =======
 ![Resume Screener app screenshot](Resume%20Screener%20Lora%20Demo.png)
 >>>>>>> 324655445e1e7ec272a8b4020e5935c223913ce1
+=======
+![Resume Screener app screenshot](Resume%20Screener%20Lora%20Demo.png)
+=======
+![Resume Screener app screenshot](assets/resume-screener-screenshot.png)
+>>>>>>> 07700d8 (Move demo assets into assets/ folder, update README)
+>>>>>>> 0187272 (Add missing demo GIF and screenshot files)
 
 ## Why
 
@@ -71,4 +85,8 @@ experience, skilled in Python, PostgreSQL, Docker, Kubernetes.
 PEFT/LoRA, Hugging Face Transformers, TRL, PyTorch, Colab T4 GPU
 =======
 PEFT/LoRA, Hugging Face Transformers, TRL, PyTorch, Colab T4 GPU
+<<<<<<< HEAD
 >>>>>>> 324655445e1e7ec272a8b4020e5935c223913ce1
+=======
+>>>>>>> 07700d8 (Move demo assets into assets/ folder, update README)
+>>>>>>> 0187272 (Add missing demo GIF and screenshot files)
