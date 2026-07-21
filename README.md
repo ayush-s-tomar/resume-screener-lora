@@ -10,7 +10,7 @@ for resume screening, instead of relying on prompting alone.
 **[Try the live demo →](https://resume-screener-lora.streamlit.app/)**
 *(hosted on Streamlit Community Cloud — may take 30–60s to wake up on first use)*
 
-![Resume Screener demo](assets/resume-screener-demo.gif)
+![Resume Screener demo](assets/Resume%20Screener%20Lora.gif)
 
 ## Demo
 
@@ -65,7 +65,7 @@ experience, skilled in Python, PostgreSQL, Docker, Kubernetes.
 
 **Fine-tuned model:**
 ```json
-{"role": "Backend Engineer", "ats_score": 56, "verdict": "moderate_match", "matched_skills": ["Python", "PostgreSQL", "Docker", "Kubernetes"], "missing_skills": ["Java", "REST APIs", "Redis"], "years_experience": 4}
+{"role": "Backend Engineer", "ats_score": 57, "verdict": "moderate_match", "matched_skills": ["Python", "PostgreSQL", "Docker", "Kubernetes"], "missing_skills": ["Java", "REST APIs", "Redis"], "years_experience": 4}
 ```
 
 ---
