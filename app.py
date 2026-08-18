@@ -19,7 +19,7 @@ from peft import PeftModel
 BASE_MODEL = "Qwen/Qwen2.5-0.5B-Instruct"
 ADAPTER_PATH = "./resume-screener-lora-adapter"
 
-st.set_page_config(page_title="Resume Screener · LoRA fine-tuned", page_icon="??", layout="centered")
+st.set_page_config(page_title="Resume Screener Â· LoRA fine-tuned", page_icon="??", layout="centered")
 
 HF_TOKEN = os.environ.get("HF_TOKEN", None)
 
@@ -300,7 +300,7 @@ st.markdown(
     """
     <div class="hero">
         <h1>?? Resume Screener</h1>
-        <p>LoRA fine-tuned Qwen2.5-0.5B-Instruct — outputs structured JSON verdicts instead of prose,
+        <p>LoRA fine-tuned Qwen2.5-0.5B-Instruct â€” outputs structured JSON verdicts instead of prose,
         so it can be piped straight into an ATS pipeline.</p>
         <div class="badge-row">
             <span class="badge">PEFT / LoRA</span>
@@ -316,13 +316,13 @@ st.markdown(
 with st.expander("How this model works"):
     st.markdown(
         """
-        Base instruct models produce unstructured prose when asked to screen a resume —
+        Base instruct models produce unstructured prose when asked to screen a resume â€”
         not something you can pipe into an ATS pipeline. This model was fine-tuned with
         LoRA (r=16, alpha=32) on 800 resume ? structured-verdict examples so JSON output
         is the model's default behavior, not something coaxed out with prompting.
 
         The model's raw skill list and score are validated against the actual resume
-        text before display — any skill it claims that isn't really in the resume is
+        text before display â€” any skill it claims that isn't really in the resume is
         filtered out, and the score/verdict are recomputed from the validated match
         ratio so they can't contradict each other.
         """
@@ -349,7 +349,7 @@ if run:
         verdict = screen_resume(model, tokenizer, resume_text, role)
 
     if verdict.get("parse_error"):
-        st.warning("Model output wasn't valid JSON — showing raw output:")
+        st.warning("Model output wasn't valid JSON â€” showing raw output:")
         st.code(verdict["raw_output"])
     else:
         score = verdict.get("ats_score", 0)
@@ -370,7 +370,7 @@ if run:
             missing_html = f'<div class="subhead">Missing skills</div><div class="chip-row">{chips}</div>'
 
         years_display = verdict.get("years_experience")
-        years_display = years_display if years_display is not None else "—"
+        years_display = years_display if years_display is not None else "â€”"
 
         st.markdown(
             f"""
