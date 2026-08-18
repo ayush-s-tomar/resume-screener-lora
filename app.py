@@ -1,4 +1,5 @@
-﻿"""
+import os
+"""
 Streamlit UI for the LoRA fine-tuned resume screener.
 Loads Qwen2.5-0.5B-Instruct base model + LoRA adapter, returns a structured JSON verdict.
 
@@ -18,9 +19,9 @@ from peft import PeftModel
 BASE_MODEL = "Qwen/Qwen2.5-0.5B-Instruct"
 ADAPTER_PATH = "./resume-screener-lora-adapter"
 
-st.set_page_config(page_title="Resume Screener · LoRA fine-tuned", page_icon="📊", layout="centered")
+st.set_page_config(page_title="Resume Screener � LoRA fine-tuned", page_icon="??", layout="centered")
 
-HF_TOKEN = st.secrets.get("HF_TOKEN", None)
+HF_TOKEN = os.environ.get("HF_TOKEN", None)
 
 # ---------------------------------------------------------------------------
 # Styling
@@ -298,8 +299,8 @@ def screen_resume(model, tokenizer, resume_text: str, role: str, retry: bool = T
 st.markdown(
     """
     <div class="hero">
-        <h1>📊 Resume Screener</h1>
-        <p>LoRA fine-tuned Qwen2.5-0.5B-Instruct — outputs structured JSON verdicts instead of prose,
+        <h1>?? Resume Screener</h1>
+        <p>LoRA fine-tuned Qwen2.5-0.5B-Instruct � outputs structured JSON verdicts instead of prose,
         so it can be piped straight into an ATS pipeline.</p>
         <div class="badge-row">
             <span class="badge">PEFT / LoRA</span>
@@ -315,13 +316,13 @@ st.markdown(
 with st.expander("How this model works"):
     st.markdown(
         """
-        Base instruct models produce unstructured prose when asked to screen a resume —
+        Base instruct models produce unstructured prose when asked to screen a resume �
         not something you can pipe into an ATS pipeline. This model was fine-tuned with
-        LoRA (r=16, alpha=32) on 800 resume → structured-verdict examples so JSON output
+        LoRA (r=16, alpha=32) on 800 resume ? structured-verdict examples so JSON output
         is the model's default behavior, not something coaxed out with prompting.
 
         The model's raw skill list and score are validated against the actual resume
-        text before display — any skill it claims that isn't really in the resume is
+        text before display � any skill it claims that isn't really in the resume is
         filtered out, and the score/verdict are recomputed from the validated match
         ratio so they can't contradict each other.
         """
@@ -331,13 +332,13 @@ with st.expander("How this model works"):
 # Input
 # ---------------------------------------------------------------------------
 with st.container(border=True):
-    role = st.text_input("🧭 Target role", placeholder="e.g. Product Manager, Data Analyst, DevOps Engineer")
+    role = st.text_input("?? Target role", placeholder="e.g. Product Manager, Data Analyst, DevOps Engineer")
     resume_text = st.text_area(
-        "📄 Resume text",
+        "?? Resume text",
         height=180,
         placeholder="Paste resume text here (education, experience, skills)...",
     )
-    run = st.button("Screen resume →", type="primary", disabled=not (role and resume_text), use_container_width=True)
+    run = st.button("Screen resume ?", type="primary", disabled=not (role and resume_text), use_container_width=True)
 
 # ---------------------------------------------------------------------------
 # Output
@@ -348,7 +349,7 @@ if run:
         verdict = screen_resume(model, tokenizer, resume_text, role)
 
     if verdict.get("parse_error"):
-        st.warning("Model output wasn't valid JSON — showing raw output:")
+        st.warning("Model output wasn't valid JSON � showing raw output:")
         st.code(verdict["raw_output"])
     else:
         score = verdict.get("ats_score", 0)
@@ -360,16 +361,16 @@ if run:
 
         matched_html = ""
         if matched:
-            chips = "".join(f'<span class="chip matched">✓ {s}</span>' for s in matched)
+            chips = "".join(f'<span class="chip matched">? {s}</span>' for s in matched)
             matched_html = f'<div class="subhead">Matched skills</div><div class="chip-row">{chips}</div>'
 
         missing_html = ""
         if missing:
-            chips = "".join(f'<span class="chip missing">✕ {s}</span>' for s in missing)
+            chips = "".join(f'<span class="chip missing">? {s}</span>' for s in missing)
             missing_html = f'<div class="subhead">Missing skills</div><div class="chip-row">{chips}</div>'
 
         years_display = verdict.get("years_experience")
-        years_display = years_display if years_display is not None else "—"
+        years_display = years_display if years_display is not None else "�"
 
         st.markdown(
             f"""
