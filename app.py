@@ -12,6 +12,8 @@ its own skill list on out-of-distribution phrasing.
 import os
 import json
 import re
+import gc
+import torch
 import streamlit as st
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import PeftModel
@@ -184,10 +186,15 @@ st.markdown(
 def load_model():
     tokenizer = AutoTokenizer.from_pretrained(ADAPTER_PATH, token=HF_TOKEN)
     base_model = AutoModelForCausalLM.from_pretrained(
-        BASE_MODEL, torch_dtype="auto", device_map="cpu", token=HF_TOKEN
+        BASE_MODEL,
+        torch_dtype=torch.float16,   # explicit fp16 instead of "auto" - halves weight memory
+        low_cpu_mem_usage=True,      # streams weights in instead of double-allocating during load
+        device_map="cpu",
+        token=HF_TOKEN,
     )
     model = PeftModel.from_pretrained(base_model, ADAPTER_PATH)
     model.eval()
+    gc.collect()  # release any transient load-time allocations before first inference
     return model, tokenizer
 
 
