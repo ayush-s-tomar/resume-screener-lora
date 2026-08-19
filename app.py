@@ -1,4 +1,3 @@
-import os
 """
 Streamlit UI for the LoRA fine-tuned resume screener.
 Loads Qwen2.5-0.5B-Instruct base model + LoRA adapter, returns a structured JSON verdict.
@@ -10,6 +9,7 @@ names not present in the input and can produce a score/verdict that contradicts
 its own skill list on out-of-distribution phrasing.
 """
 
+import os
 import json
 import re
 import streamlit as st
