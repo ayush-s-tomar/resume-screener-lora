@@ -3,11 +3,11 @@ services:
     name: resume-screener-lora
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.13
       - key: HF_TOKEN
         sync: false
-      - key: STREAMLIT_SERVER_HEADLESS
-        value: "true"
+      - key: MALLOC_ARENA_MAX
+        value: "2"

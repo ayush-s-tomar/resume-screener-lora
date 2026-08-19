@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resume Screener · LoRA fine-tuned</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+    background: radial-gradient(circle at 20% 0%, #1a1f2e 0%, #0e1117 45%);
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+
+  .hero {
+    padding: 2.2rem 2rem 1.6rem 2rem;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.18) 0%, rgba(56,189,248,0.10) 100%);
+    border: 1px solid rgba(148,163,255,0.18);
+    margin-bottom: 1.6rem;
+  }
+  .hero h1 {
+    font-size: 2rem;
+    margin: 0 0 0.2rem 0;
+    background: linear-gradient(90deg, #a5b4fc, #67e8f9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero p { color: #94a3b8; font-size: 0.95rem; margin: 0.6rem 0 0 0; }
+  .badge-row { margin-top: 0.9rem; }
+  .badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #c7d2fe;
+    background: rgba(99,102,241,0.16);
+    border: 1px solid rgba(129,140,248,0.35);
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-right: 6px;
+  }
+
+  details {
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.02);
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 1.4rem;
+  }
+  summary { cursor: pointer; font-weight: 600; }
+  details p { color: #94a3b8; font-size: 0.9rem; line-height: 1.5; margin: 0.7rem 0 0 0; }
+
+  .card {
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    padding: 1.4rem;
+    margin-bottom: 1.4rem;
+  }
+  label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.4rem; }
+  input[type=text], textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    color: #e2e8f0;
+    padding: 0.7rem 0.8rem;
+    font-size: 0.95rem;
+    font-family: inherit;
+    margin-bottom: 1.1rem;
+  }
+  textarea { resize: vertical; min-height: 160px; }
+  input::placeholder, textarea::placeholder { color: #64748b; }
+
+  button {
+    width: 100%;
+    background: linear-gradient(90deg, #6366f1, #22d3ee);
+    color: #0e1117;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border: none;
+    border-radius: 10px;
+    padding: 0.85rem;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(99,102,241,0.28); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .status { text-align: center; color: #94a3b8; font-size: 0.9rem; margin: 1rem 0; display: none; }
+  .status.show { display: block; }
+
+  .verdict-card {
+    background: linear-gradient(135deg, rgba(34,197,94,0.10), rgba(16,185,129,0.04));
+    border: 1px solid rgba(52,211,153,0.28);
+    border-radius: 16px;
+    padding: 1.6rem 1.7rem;
+    display: none;
+  }
+  .verdict-card.show { display: block; }
+  .verdict-card.moderate { background: linear-gradient(135deg, rgba(234,179,8,0.10), rgba(202,138,4,0.04)); border-color: rgba(250,204,21,0.28); }
+  .verdict-card.weak { background: linear-gradient(135deg, rgba(239,68,68,0.10), rgba(220,38,38,0.04)); border-color: rgba(248,113,113,0.28); }
+
+  .metric-row { display: flex; gap: 1rem; margin-bottom: 1.1rem; }
+  .metric-box { flex: 1; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0.9rem 1rem; text-align: center; }
+  .metric-box .label { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
+  .metric-box .value { font-size: 1.6rem; font-weight: 700; color: #f1f5f9; }
+
+  .score-bar-track { width: 100%; height: 10px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; margin-top: 0.4rem; }
+  .score-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #34d399, #22d3ee); }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 0.4rem; }
+  .chip { font-size: 0.78rem; padding: 4px 11px; border-radius: 999px; font-weight: 500; }
+  .chip.matched { background: rgba(52,211,153,0.14); color: #6ee7b7; border: 1px solid rgba(52,211,153,0.3); }
+  .chip.missing { background: rgba(248,113,113,0.12); color: #fca5a5; border: 1px solid rgba(248,113,113,0.28); }
+
+  .subhead { font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin: 1rem 0 0.4rem 0; font-weight: 600; }
+
+  .footer-caption { text-align: center; color: #64748b; font-size: 0.8rem; margin-top: 2rem; }
+  .footer-caption a { color: #93c5fd; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <h1>🧠 Resume Screener</h1>
+    <p>LoRA fine-tuned Qwen2.5-0.5B-Instruct — outputs structured JSON verdicts instead of prose, so it can be piped straight into an ATS pipeline.</p>
+    <div class="badge-row">
+      <span class="badge">PEFT / LoRA</span>
+      <span class="badge">Qwen2.5-0.5B</span>
+      <span class="badge">Structured Output</span>
+      <span class="badge">Trained on Colab T4</span>
+    </div>
+  </div>
+
+  <details>
+    <summary>How this model works</summary>
+    <p>
+      Base instruct models produce unstructured prose when asked to screen a resume — not something you can pipe
+      into an ATS pipeline. This model was fine-tuned with LoRA (r=16, alpha=32) on 800 resume → structured-verdict
+      examples so JSON output is the model's default behavior, not something coaxed out with prompting.
+      The model's raw skill list and score are validated against the actual resume text before display — any skill
+      it claims that isn't really in the resume is filtered out, and the score/verdict are recomputed from the
+      validated match ratio so they can't contradict each other.
+    </p>
+  </details>
+
+  <div class="card">
+    <label for="role">🎯 Target role</label>
+    <input type="text" id="role" placeholder="e.g. Product Manager, Data Analyst, DevOps Engineer">
+
+    <label for="resume">📄 Resume text</label>
+    <textarea id="resume" placeholder="Paste resume text here (education, experience, skills)..."></textarea>
+
+    <button id="runBtn" disabled>Screen resume →</button>
+  </div>
+
+  <div class="status" id="status">Loading fine-tuned model (first request only, ~30–60s)...</div>
+
+  <div class="verdict-card" id="verdictCard"></div>
+
+  <div class="footer-caption">
+    Model: <a href="https://github.com/ayush-s-tomar/resume-screener-lora" target="_blank">resume-screener-lora on GitHub</a>
+  </div>
+
+</div>
+
+<script>
+const roleEl = document.getElementById('role');
+const resumeEl = document.getElementById('resume');
+const runBtn = document.getElementById('runBtn');
+const statusEl = document.getElementById('status');
+const verdictCard = document.getElementById('verdictCard');
+
+function updateButtonState() {
+  runBtn.disabled = !(roleEl.value.trim() && resumeEl.value.trim());
+}
+roleEl.addEventListener('input', updateButtonState);
+resumeEl.addEventListener('input', updateButtonState);
+
+function chip(cls, symbol, text) {
+  return `<span class="chip ${cls}">${symbol} ${text}</span>`;
+}
+
+runBtn.addEventListener('click', async () => {
+  runBtn.disabled = true;
+  statusEl.classList.add('show');
+  verdictCard.classList.remove('show');
+
+  try {
+    const res = await fetch('/api/screen', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: roleEl.value.trim(), resume_text: resumeEl.value.trim() })
+    });
+    const data = await res.json();
+    statusEl.classList.remove('show');
+
+    if (data.parse_error) {
+      verdictCard.className = 'verdict-card show weak';
+      verdictCard.innerHTML = `<div class="subhead">Model output wasn't valid JSON — raw output</div>
+        <pre style="white-space:pre-wrap;color:#cbd5e1;">${(data.raw_output || '').replace(/</g,'&lt;')}</pre>`;
+      updateButtonState();
+      return;
+    }
+
+    const score = data.ats_score ?? 0;
+    const verdictLabel = data.verdict ?? 'unknown';
+    const tone = verdictLabel.includes('moderate') ? 'moderate'
+      : (verdictLabel.includes('weak') || verdictLabel.includes('poor')) ? 'weak' : '';
+
+    const matched = data.matched_skills || [];
+    const missing = data.missing_skills || [];
+
+    const matchedHtml = matched.length
+      ? `<div class="subhead">Matched skills</div><div class="chip-row">${matched.map(s => chip('matched', '✓', s)).join('')}</div>`
+      : '';
+    const missingHtml = missing.length
+      ? `<div class="subhead">Missing skills</div><div class="chip-row">${missing.map(s => chip('missing', '✗', s)).join('')}</div>`
+      : '';
+
+    const years = (data.years_experience === null || data.years_experience === undefined) ? '—' : data.years_experience;
+
+    verdictCard.className = `verdict-card show ${tone}`;
+    verdictCard.innerHTML = `
+      <div class="metric-row">
+        <div class="metric-box"><div class="label">ATS Score</div><div class="value">${score}</div></div>
+        <div class="metric-box"><div class="label">Verdict</div><div class="value" style="font-size:1.1rem;text-transform:capitalize;">${verdictLabel.replace(/_/g,' ')}</div></div>
+        <div class="metric-box"><div class="label">Years Experience</div><div class="value">${years}</div></div>
+      </div>
+      <div class="score-bar-track"><div class="score-bar-fill" style="width:${Math.min(score,100)}%;"></div></div>
+      ${matchedHtml}
+      ${missingHtml}
+    `;
+  } catch (err) {
+    statusEl.classList.remove('show');
+    verdictCard.className = 'verdict-card show weak';
+    verdictCard.innerHTML = `<div class="subhead">Request failed</div><p style="color:#fca5a5;">${err.message}</p>`;
+  } finally {
+    updateButtonState();
+  }
+});
+</script>
+</body>
+</html>
