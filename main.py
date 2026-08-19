@@ -60,6 +60,13 @@ def _load_model():
     model = peft_model.merge_and_unload()
     del peft_model, base_model
     model.eval()
+
+    # Dynamic int8 quantization of Linear layers - CPU-native (no bitsandbytes
+    # needed), shrinks the bulk of the model's weight memory beyond fp16 alone.
+    model = torch.quantization.quantize_dynamic(
+        model, {torch.nn.Linear}, dtype=torch.qint8
+    )
+
     gc.collect()
     _model, _tokenizer = model, tokenizer
 
