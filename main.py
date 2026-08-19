@@ -37,23 +37,36 @@ _tokenizer = None
 
 
 def get_model():
-    global _model, _tokenizer
+    """Return the already-loaded model. Loading happens once at server
+    startup (see the startup event below), not on first request, so an
+    HTTP request never has to wait through model load time on top of
+    generation time - avoiding proxy/client timeouts on slow CPU hosts."""
     if _model is None:
-        tokenizer = AutoTokenizer.from_pretrained(ADAPTER_PATH, token=HF_TOKEN)
-        base_model = AutoModelForCausalLM.from_pretrained(
-            BASE_MODEL,
-            torch_dtype=torch.float16,
-            low_cpu_mem_usage=True,
-            device_map="cpu",
-            token=HF_TOKEN,
-        )
-        peft_model = PeftModel.from_pretrained(base_model, ADAPTER_PATH)
-        model = peft_model.merge_and_unload()
-        del peft_model, base_model
-        model.eval()
-        gc.collect()
-        _model, _tokenizer = model, tokenizer
+        raise RuntimeError("Model not loaded yet - server is still starting up.")
     return _model, _tokenizer
+
+
+def _load_model():
+    global _model, _tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(ADAPTER_PATH, token=HF_TOKEN)
+    base_model = AutoModelForCausalLM.from_pretrained(
+        BASE_MODEL,
+        torch_dtype=torch.float16,
+        low_cpu_mem_usage=True,
+        device_map="cpu",
+        token=HF_TOKEN,
+    )
+    peft_model = PeftModel.from_pretrained(base_model, ADAPTER_PATH)
+    model = peft_model.merge_and_unload()
+    del peft_model, base_model
+    model.eval()
+    gc.collect()
+    _model, _tokenizer = model, tokenizer
+
+
+@app.on_event("startup")
+def load_model_on_startup():
+    _load_model()
 
 
 def find_list_by_keyword(d: dict, keyword: str) -> list:
