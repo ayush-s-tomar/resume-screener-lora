@@ -1,7 +1,12 @@
 """
 FastAPI backend for the LoRA fine-tuned resume screener.
-Loads Qwen2.5-0.5B-Instruct base model + LoRA adapter (merged at load time),
-returns a structured, validated JSON verdict via a small JSON API.
+Loads a PRE-MERGED, PRE-QUANTIZED model from ./quantized_model at startup.
+(Merging the LoRA adapter and int8-quantizing now happen offline, once,
+via merge_and_quantize_offline.py - NOT on Render at boot time. This
+avoids the multi-copy memory spike that was blowing past the 512MB limit:
+previously we loaded a full fp16 base model, merged it into a second
+full copy, then quantized into a third copy, all in the same process.)
+
 The static/index.html frontend calls POST /api/screen.
 
 Reliability note: the raw model output (score, verdict, matched/missing skills) is
@@ -23,12 +28,9 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from peft import PeftModel
+from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
 
-BASE_MODEL = "Qwen/Qwen2.5-0.5B-Instruct"
-ADAPTER_PATH = "./resume-screener-lora-adapter"
-HF_TOKEN = os.environ.get("HF_TOKEN", None)
+QUANTIZED_DIR = "./quantized_model"
 
 app = FastAPI(title="Resume Screener API")
 
@@ -48,24 +50,24 @@ def get_model():
 
 def _load_model():
     global _model, _tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(ADAPTER_PATH, token=HF_TOKEN)
-    base_model = AutoModelForCausalLM.from_pretrained(
-        BASE_MODEL,
-        torch_dtype=torch.float16,
-        low_cpu_mem_usage=True,
-        device_map="cpu",
-        token=HF_TOKEN,
-    )
-    peft_model = PeftModel.from_pretrained(base_model, ADAPTER_PATH)
-    model = peft_model.merge_and_unload()
-    del peft_model, base_model
-    model.eval()
 
-    # Dynamic int8 quantization of Linear layers - CPU-native (no bitsandbytes
-    # needed), shrinks the bulk of the model's weight memory beyond fp16 alone.
+    tokenizer = AutoTokenizer.from_pretrained(QUANTIZED_DIR)
+    config = AutoConfig.from_pretrained(QUANTIZED_DIR)
+
+    # Build the model skeleton, then immediately quantize its structure
+    # (this defines *which layers* become int8 - it does not need the
+    # real fp16/fp32 weights in memory to do this), then load the
+    # already-quantized state dict on top. This keeps us to roughly one
+    # model's worth of peak memory instead of three overlapping copies.
+    model = AutoModelForCausalLM.from_config(config, torch_dtype=torch.float32)
     model = torch.quantization.quantize_dynamic(
         model, {torch.nn.Linear}, dtype=torch.qint8
     )
+    state_dict = torch.load(
+        os.path.join(QUANTIZED_DIR, "model_int8.pt"), map_location="cpu"
+    )
+    model.load_state_dict(state_dict)
+    model.eval()
 
     gc.collect()
     _model, _tokenizer = model, tokenizer
