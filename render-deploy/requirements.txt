@@ -1,4 +1,3 @@
-﻿llama-cpp-python==0.3.4
-huggingface_hub
+﻿groq
 fastapi
 uvicorn
