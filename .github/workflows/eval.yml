@@ -1,4 +1,4 @@
-﻿name: eval
+name: eval
 
 on:
   push:
@@ -12,10 +12,10 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.11"
 
@@ -45,7 +45,7 @@ jobs:
 
       - name: Lint with pylint
         run: |
-          pylint app.py inference.py --disable=all --enable=E --exit-zero
+          pylint inference.py --disable=all --enable=E --exit-zero
 
       - name: Run baseline vs fine-tuned comparison
         run: |
