@@ -46,45 +46,43 @@ def home():
         font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
         background: #0a0a0f;
         min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 24px;
+        padding: 60px 24px;
     }
     .wrap {
-        max-width: 640px;
+        max-width: 760px;
         width: 100%;
+        margin: 0 auto;
     }
     .panel {
         background: #14141f;
         border: 1px solid #26263a;
         border-radius: 16px;
-        padding: 28px;
-        margin-bottom: 16px;
+        padding: 32px;
+        margin-bottom: 20px;
     }
     .header-row {
         display: flex;
         align-items: center;
-        gap: 14px;
-        margin-bottom: 14px;
+        gap: 16px;
+        margin-bottom: 18px;
     }
     .icon-box {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
+        width: 44px;
+        height: 44px;
+        border-radius: 11px;
         background: linear-gradient(135deg, #818cf8, #a78bfa);
         flex-shrink: 0;
     }
     h1 {
-        font-size: 22px;
+        font-size: 24px;
         color: #e5e7eb;
         font-weight: 700;
     }
     .desc {
         color: #9ca3af;
-        font-size: 13.5px;
-        line-height: 1.6;
-        margin-bottom: 16px;
+        font-size: 14.5px;
+        line-height: 1.7;
+        margin-bottom: 20px;
     }
     .badges {
         display: flex;
@@ -95,15 +93,15 @@ def home():
         background: #1f1f30;
         border: 1px solid #35354d;
         color: #a5b4fc;
-        font-size: 11.5px;
+        font-size: 12px;
         font-weight: 600;
-        padding: 5px 12px;
+        padding: 6px 14px;
         border-radius: 999px;
     }
     details.panel summary {
         cursor: pointer;
         color: #cbd5e1;
-        font-size: 14px;
+        font-size: 15px;
         font-weight: 600;
         list-style: none;
         display: flex;
@@ -116,32 +114,32 @@ def home():
         display: inline-block;
         transition: transform 0.2s;
         color: #818cf8;
-        font-size: 16px;
+        font-size: 17px;
     }
     details.panel[open] summary::before { transform: rotate(90deg); }
     details.panel .how-body {
-        margin-top: 14px;
+        margin-top: 16px;
         color: #9ca3af;
-        font-size: 13.5px;
-        line-height: 1.7;
+        font-size: 14.5px;
+        line-height: 1.8;
     }
     label {
         display: flex;
         align-items: center;
         gap: 8px;
         color: #cbd5e1;
-        font-size: 13.5px;
+        font-size: 14.5px;
         font-weight: 600;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
     }
     input[type=text], textarea {
         width: 100%;
         background: #0e0e17;
         border: 1px solid #2c2c42;
         border-radius: 10px;
-        padding: 12px 14px;
+        padding: 13px 16px;
         color: #e5e7eb;
-        font-size: 14px;
+        font-size: 14.5px;
         font-family: inherit;
     }
     input[type=text]:focus, textarea:focus {
@@ -149,16 +147,15 @@ def home():
         border-color: #818cf8;
     }
     textarea {
-        min-height: 140px;
+        min-height: 160px;
         resize: vertical;
-        margin-top: 4px;
     }
-    .field { margin-bottom: 18px; }
-    .field input { margin-top: 4px; }
+    .field { margin-bottom: 24px; }
+    .field:last-of-type { margin-bottom: 26px; }
     button {
         width: 100%;
-        padding: 14px;
-        font-size: 15px;
+        padding: 15px;
+        font-size: 15.5px;
         font-weight: 700;
         color: white;
         background: linear-gradient(90deg, #ef4444, #f87171);
@@ -173,13 +170,13 @@ def home():
     }
     button:disabled { opacity: 0.6; cursor: not-allowed; }
     #result {
-        margin-top: 18px;
-        padding: 16px 18px;
+        margin-top: 22px;
+        padding: 20px 22px;
         background: #0e0e17;
         border: 1px solid #2c2c42;
         border-radius: 10px;
-        font-size: 13.5px;
-        line-height: 1.65;
+        font-size: 14px;
+        line-height: 1.75;
         color: #d1d5db;
         display: none;
         overflow-x: auto;
@@ -192,14 +189,14 @@ def home():
         align-items: center;
         gap: 10px;
     }
-    #result h1, #result h2, #result h3 { margin: 12px 0 8px; color: #e5e7eb; }
-    #result h3 { font-size: 15px; }
+    #result h1, #result h2, #result h3 { margin: 14px 0 10px; color: #e5e7eb; }
+    #result h3 { font-size: 16px; }
     #result strong { color: #f3f4f6; }
-    #result table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 12.5px; }
-    #result th, #result td { border: 1px solid #2c2c42; padding: 7px 9px; text-align: left; }
+    #result table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+    #result th, #result td { border: 1px solid #2c2c42; padding: 8px 10px; text-align: left; }
     #result th { background: #1f1f30; color: #a5b4fc; }
-    #result ul, #result ol { margin: 8px 0 8px 20px; }
-    #result hr { border: none; border-top: 1px solid #2c2c42; margin: 12px 0; }
+    #result ul, #result ol { margin: 10px 0 10px 22px; }
+    #result hr { border: none; border-top: 1px solid #2c2c42; margin: 14px 0; }
     .spinner {
         width: 15px; height: 15px;
         border: 2px solid #2c2c42;
@@ -210,9 +207,9 @@ def home():
     @keyframes spin { to { transform: rotate(360deg); } }
     footer {
         text-align: center;
-        font-size: 11.5px;
+        font-size: 12px;
         color: #4b5563;
-        margin-top: 4px;
+        margin-top: 8px;
     }
 </style>
 </head>
@@ -242,7 +239,7 @@ def home():
     <div class="panel">
         <div class="field">
             <label>&#127919; Target role</label>
-            <input type="text" id="role" value="Software Engineer">
+            <input type="text" id="role" placeholder="Enter your role">
         </div>
         <div class="field">
             <label>&#128196; Resume text</label>
