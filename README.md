@@ -1,4 +1,4 @@
-﻿# Resume Screener — LoRA Fine-Tuned (Qwen2.5-0.5B)
+# Resume Screener — LoRA Fine-Tuned (Qwen2.5-0.5B)
 [![Live Demo](https://img.shields.io/badge/demo-render-46e3b7?logo=render&logoColor=white)](https://resume-screener-finetune.onrender.com/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](requirements.txt)
@@ -80,8 +80,11 @@ python -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
-python inference.py              # CLI inference
-streamlit run app.py             # -> http://localhost:8501
+python inference.py
+# Runs a built-in example resume and prints the structured JSON verdict
+
+python inference.py --role "Backend Engineer" --resume path/to/resume.txt
+# Screen your own resume -- accepts a file path or raw text via --resume
 
 python compare_baseline_vs_finetuned.py   # optional: base vs fine-tuned side by side
 ```
@@ -93,10 +96,11 @@ Qwen2.5-0.5B-Instruct model from Hugging Face.
 ---
 
 ## Repo Structure
+
+```text
 resume-screener-lora/
 ├── finetune_lora.ipynb # Full training notebook (data prep -> LoRA config -> training -> eval)
-├── inference.py # CLI inference script -- loads adapter, runs a single screening
-├── app.py # Streamlit app -- local demo UI using the actual fine-tuned adapter
+├── inference.py # CLI inference script -- loads adapter, runs a single screening (supports --resume/--role)
 ├── compare_baseline_vs_finetuned.py # Side-by-side base vs fine-tuned output comparison
 ├── data/ # Train/eval JSONL datasets + dataset generator script
 ├── resume-screener-lora-adapter/ # Trained LoRA adapter weights
@@ -106,6 +110,7 @@ resume-screener-lora/
 ├── requirements.txt
 ├── LICENSE
 └── README.md
+```
 
 ---
 
@@ -128,7 +133,7 @@ Details and setup for the hosted backend live in
 ## Stack
 
 **Fine-tuning:** PEFT/LoRA, Hugging Face Transformers, TRL, PyTorch, Colab T4 GPU
-**Local demo:** Streamlit
+**Local inference:** CLI scripts (`inference.py`, `compare_baseline_vs_finetuned.py`)
 **Hosted demo backend:** FastAPI, Groq API, Render
 
 ---
