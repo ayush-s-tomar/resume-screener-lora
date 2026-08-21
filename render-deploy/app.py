@@ -1,4 +1,5 @@
 ﻿from fastapi import FastAPI
+from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 from huggingface_hub import hf_hub_download
 from llama_cpp import Llama
@@ -13,7 +14,7 @@ model_path = hf_hub_download(
 llm = Llama(
     model_path=model_path,
     n_ctx=512,
-    n_threads=1,
+    n_threads=2,
     n_batch=64,
     n_ubatch=64,
 )
@@ -21,11 +22,15 @@ llm = Llama(
 class ResumeRequest(BaseModel):
     resume_text: str
 
-@app.post("/score")
-def score_resume(req: ResumeRequest):
-    prompt = f"Score this resume for a Software Engineer role on a scale of 1-10 and explain why: {req.resume_text}"
+def run_inference(prompt: str):
     response = llm(prompt, max_tokens=120, stop=["<|im_end|>"])
-    return {"result": response["choices"][0]["text"]}
+    return response["choices"][0]["text"]
+
+@app.post("/score")
+async def score_resume(req: ResumeRequest):
+    prompt = f"Score this resume for a Software Engineer role on a scale of 1-10 and explain why: {req.resume_text}"
+    result = await run_in_threadpool(run_inference, prompt)
+    return {"result": result}
 
 @app.api_route("/", methods=["GET", "HEAD"])
 def health():
