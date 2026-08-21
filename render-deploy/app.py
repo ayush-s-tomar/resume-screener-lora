@@ -12,8 +12,10 @@ model_path = hf_hub_download(
 
 llm = Llama(
     model_path=model_path,
-    n_ctx=1024,
-    n_threads=2,
+    n_ctx=512,
+    n_threads=1,
+    n_batch=64,
+    n_ubatch=64,
 )
 
 class ResumeRequest(BaseModel):
@@ -22,7 +24,7 @@ class ResumeRequest(BaseModel):
 @app.post("/score")
 def score_resume(req: ResumeRequest):
     prompt = f"Score this resume for a Software Engineer role on a scale of 1-10 and explain why: {req.resume_text}"
-    response = llm(prompt, max_tokens=200, stop=["<|im_end|>"])
+    response = llm(prompt, max_tokens=120, stop=["<|im_end|>"])
     return {"result": response["choices"][0]["text"]}
 
 @app.api_route("/", methods=["GET", "HEAD"])
