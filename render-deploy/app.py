@@ -23,7 +23,7 @@ def score_resume(req: ResumeRequest):
     response = client.chat.completions.create(
         model="openai/gpt-oss-20b",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=300,
+        max_tokens=800,
         temperature=0.7,
     )
     result = clean_text(response.choices[0].message.content)
@@ -38,6 +38,7 @@ def home():
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Resume Screener AI</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -53,7 +54,7 @@ def home():
         background: rgba(255, 255, 255, 0.98);
         border-radius: 20px;
         box-shadow: 0 20px 60px rgba(0,0,0,0.35);
-        max-width: 640px;
+        max-width: 680px;
         width: 100%;
         padding: 40px;
     }
@@ -118,15 +119,15 @@ def home():
     }
     #result {
         margin-top: 20px;
-        padding: 18px;
+        padding: 18px 22px;
         background: #f8fafc;
         border: 1px solid #e2e8f0;
         border-radius: 12px;
-        white-space: pre-wrap;
         font-size: 14px;
-        line-height: 1.6;
+        line-height: 1.65;
         color: #1e293b;
         display: none;
+        overflow-x: auto;
     }
     #result.show { display: block; }
     #result.loading {
@@ -135,6 +136,35 @@ def home():
         display: flex;
         align-items: center;
         gap: 10px;
+    }
+    #result h1, #result h2, #result h3 {
+        margin: 14px 0 8px;
+        color: #1e1b4b;
+    }
+    #result h3 { font-size: 16px; }
+    #result strong { color: #1e1b4b; }
+    #result table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 12px 0;
+        font-size: 13px;
+    }
+    #result th, #result td {
+        border: 1px solid #e2e8f0;
+        padding: 8px 10px;
+        text-align: left;
+    }
+    #result th {
+        background: #eef2ff;
+        color: #4338ca;
+    }
+    #result ul, #result ol {
+        margin: 8px 0 8px 20px;
+    }
+    #result hr {
+        border: none;
+        border-top: 1px solid #e2e8f0;
+        margin: 14px 0;
     }
     .spinner {
         width: 16px;
@@ -188,7 +218,7 @@ async function scoreResume() {
         });
         const data = await res.json();
         resultDiv.className = 'show';
-        resultDiv.textContent = data.result || JSON.stringify(data);
+        resultDiv.innerHTML = data.result ? marked.parse(data.result) : JSON.stringify(data);
     } catch (e) {
         resultDiv.className = 'show';
         resultDiv.textContent = 'Error: ' + e;
