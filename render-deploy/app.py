@@ -39,6 +39,7 @@ def home():
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Resume Screener</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%236366f1'/%3E%3Cstop offset='100%25' stop-color='%23a78bfa'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='24' height='24' rx='6' fill='url(%23g)'/%3E%3Cpath d='M6 3h9l4 4v13H6V3z' fill='none' stroke='white' stroke-width='1.6'/%3E%3Cpath d='M9 12h6M9 15h6M9 18h3' stroke='white' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -181,8 +182,29 @@ def home():
         box-shadow: 0 10px 24px rgba(99,102,241,0.35);
     }
     button:disabled { opacity: 0.6; cursor: not-allowed; }
-    #result {
+    #scoreBadge {
+        display: none;
+        align-items: center;
+        gap: 14px;
         margin-top: 22px;
+        padding: 18px 22px;
+        background: linear-gradient(90deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08));
+        border: 1px solid #35355a;
+        border-radius: 12px;
+    }
+    #scoreBadge.show { display: flex; animation: fadeIn 0.4s ease; }
+    #scoreBadge .num {
+        font-size: 32px;
+        font-weight: 800;
+        color: #a5b4fc;
+        line-height: 1;
+    }
+    #scoreBadge .label {
+        color: #9ca3af;
+        font-size: 13px;
+    }
+    #result {
+        margin-top: 14px;
         padding: 20px 22px;
         background: #0e0e17;
         border: 1px solid #2c2c42;
@@ -193,13 +215,17 @@ def home():
         display: none;
         overflow-x: auto;
     }
-    #result.show { display: block; }
+    #result.show { display: block; animation: fadeIn 0.4s ease; }
     #result.loading {
         color: #a5b4fc;
         font-weight: 600;
         display: flex;
         align-items: center;
         gap: 10px;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     #result h1, #result h2, #result h3 { margin: 14px 0 10px; color: #e5e7eb; }
     #result h3 { font-size: 16px; }
@@ -261,9 +287,10 @@ def home():
         </div>
         <div class="field">
             <label>&#128196; Resume text</label>
-            <textarea id="resume" placeholder="Paste resume text here..."></textarea>
+            <textarea id="resume" placeholder="Paste resume text here..." autofocus></textarea>
         </div>
         <button id="btn" onclick="scoreResume()">Screen resume &rarr;</button>
+        <div id="scoreBadge"><div class="num" id="scoreNum">-</div><div class="label">out of 10</div></div>
         <div id="result"></div>
     </div>
 
@@ -274,7 +301,10 @@ async function scoreResume() {
     const text = document.getElementById('resume').value.trim();
     const role = document.getElementById('role').value.trim() || 'Software Engineer';
     const resultDiv = document.getElementById('result');
+    const scoreBadge = document.getElementById('scoreBadge');
     const btn = document.getElementById('btn');
+
+    scoreBadge.classList.remove('show');
 
     if (!text) {
         resultDiv.className = 'show';
@@ -294,8 +324,16 @@ async function scoreResume() {
             body: JSON.stringify({ resume_text: text, target_role: role })
         });
         const data = await res.json();
+        const raw = data.result || JSON.stringify(data);
+
+        const match = raw.match(/(\\d{1,2}(?:\\.\\d)?)\\s*\\/\\s*10/);
+        if (match) {
+            document.getElementById('scoreNum').textContent = match[1];
+            scoreBadge.classList.add('show');
+        }
+
         resultDiv.className = 'show';
-        resultDiv.innerHTML = data.result ? marked.parse(data.result) : JSON.stringify(data);
+        resultDiv.innerHTML = marked.parse(raw);
     } catch (e) {
         resultDiv.className = 'show';
         resultDiv.textContent = 'Error: ' + e;
