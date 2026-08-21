@@ -44,12 +44,15 @@ def home():
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
         font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        background: #0a0a0f;
+        background:
+            radial-gradient(circle at 20% 0%, rgba(99,102,241,0.10), transparent 40%),
+            radial-gradient(circle at 80% 100%, rgba(139,92,246,0.08), transparent 40%),
+            #0a0a0f;
         min-height: 100vh;
-        padding: 60px 24px;
+        padding: 56px 24px;
     }
     .wrap {
-        max-width: 760px;
+        max-width: 820px;
         width: 100%;
         margin: 0 auto;
     }
@@ -58,8 +61,10 @@ def home():
         border: 1px solid #26263a;
         border-radius: 16px;
         padding: 32px;
-        margin-bottom: 20px;
+        margin-bottom: 18px;
+        transition: border-color 0.2s;
     }
+    .panel:hover { border-color: #35355a; }
     .header-row {
         display: flex;
         align-items: center;
@@ -67,15 +72,20 @@ def home():
         margin-bottom: 18px;
     }
     .icon-box {
-        width: 44px;
-        height: 44px;
-        border-radius: 11px;
-        background: linear-gradient(135deg, #818cf8, #a78bfa);
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #6366f1, #a78bfa);
         flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 14px rgba(99,102,241,0.35);
     }
+    .icon-box svg { width: 24px; height: 24px; }
     h1 {
         font-size: 24px;
-        color: #e5e7eb;
+        color: #f1f5f9;
         font-weight: 700;
     }
     .desc {
@@ -141,10 +151,12 @@ def home():
         color: #e5e7eb;
         font-size: 14.5px;
         font-family: inherit;
+        transition: border-color 0.2s, box-shadow 0.2s;
     }
     input[type=text]:focus, textarea:focus {
         outline: none;
         border-color: #818cf8;
+        box-shadow: 0 0 0 3px rgba(129,140,248,0.15);
     }
     textarea {
         min-height: 160px;
@@ -158,7 +170,7 @@ def home():
         font-size: 15.5px;
         font-weight: 700;
         color: white;
-        background: linear-gradient(90deg, #ef4444, #f87171);
+        background: linear-gradient(90deg, #6366f1, #8b5cf6);
         border: none;
         border-radius: 10px;
         cursor: pointer;
@@ -166,7 +178,7 @@ def home():
     }
     button:hover:not(:disabled) {
         transform: translateY(-1px);
-        box-shadow: 0 8px 20px rgba(239,68,68,0.3);
+        box-shadow: 0 10px 24px rgba(99,102,241,0.35);
     }
     button:disabled { opacity: 0.6; cursor: not-allowed; }
     #result {
@@ -217,7 +229,13 @@ def home():
 <div class="wrap">
     <div class="panel">
         <div class="header-row">
-            <div class="icon-box"></div>
+            <div class="icon-box">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 2h9l5 5v15H6V2z" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
+                    <path d="M15 2v5h5" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
+                    <path d="M9 12h6M9 15h6M9 18h3" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+            </div>
             <h1>Resume Screener</h1>
         </div>
         <p class="desc">AI-powered resume evaluator served via Groq (gpt-oss-20b) &mdash; scores a resume against a target role and explains the reasoning, so it can support quick screening decisions.</p>
