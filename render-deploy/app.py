@@ -10,7 +10,11 @@ model_path = hf_hub_download(
     filename="resume-screener-q4_k_m.gguf"
 )
 
-llm = Llama(model_path=model_path, n_ctx=2048, n_threads=2)
+llm = Llama(
+    model_path=model_path,
+    n_ctx=1024,
+    n_threads=2,
+)
 
 class ResumeRequest(BaseModel):
     resume_text: str
@@ -21,6 +25,6 @@ def score_resume(req: ResumeRequest):
     response = llm(prompt, max_tokens=200, stop=["<|im_end|>"])
     return {"result": response["choices"][0]["text"]}
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def health():
     return {"status": "ok"}
