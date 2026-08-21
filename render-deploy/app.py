@@ -1,4 +1,6 @@
-﻿from fastapi import FastAPI
+﻿import sys
+import traceback
+from fastapi import FastAPI
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 from huggingface_hub import hf_hub_download
@@ -23,14 +25,24 @@ class ResumeRequest(BaseModel):
     resume_text: str
 
 def run_inference(prompt: str):
-    response = llm(prompt, max_tokens=120, stop=["<|im_end|>"])
-    return response["choices"][0]["text"]
+    try:
+        response = llm(prompt, max_tokens=120, stop=["<|im_end|>"])
+        return response["choices"][0]["text"]
+    except Exception:
+        print("INFERENCE ERROR:", file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
+        raise
 
 @app.post("/score")
 async def score_resume(req: ResumeRequest):
     prompt = f"Score this resume for a Software Engineer role on a scale of 1-10 and explain why: {req.resume_text}"
-    result = await run_in_threadpool(run_inference, prompt)
-    return {"result": result}
+    try:
+        result = await run_in_threadpool(run_inference, prompt)
+        return {"result": result}
+    except Exception as e:
+        print(f"ENDPOINT ERROR: {e}", file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
+        return {"error": str(e)}, 500
 
 @app.api_route("/", methods=["GET", "HEAD"])
 def health():
