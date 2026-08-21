@@ -1,4 +1,5 @@
 ﻿import os
+import unicodedata
 from fastapi import FastAPI
 from pydantic import BaseModel
 from groq import Groq
@@ -10,6 +11,12 @@ client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 class ResumeRequest(BaseModel):
     resume_text: str
 
+def clean_text(text: str) -> str:
+    # Normalize unicode and replace non-breaking/narrow spaces with regular spaces
+    text = unicodedata.normalize("NFKC", text)
+    text = text.replace("\u202f", " ").replace("\u00a0", " ")
+    return text
+
 @app.post("/score")
 def score_resume(req: ResumeRequest):
     prompt = f"Score this resume for a Software Engineer role on a scale of 1-10 and explain why: {req.resume_text}"
@@ -19,7 +26,8 @@ def score_resume(req: ResumeRequest):
         max_tokens=300,
         temperature=0.7,
     )
-    return {"result": response.choices[0].message.content}
+    result = clean_text(response.choices[0].message.content)
+    return {"result": result}
 
 @app.api_route("/", methods=["GET", "HEAD"])
 def health():
