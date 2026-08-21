@@ -14,7 +14,7 @@ class ResumeRequest(BaseModel):
 def score_resume(req: ResumeRequest):
     prompt = f"Score this resume for a Software Engineer role on a scale of 1-10 and explain why: {req.resume_text}"
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-20b",
         messages=[{"role": "user", "content": prompt}],
         max_tokens=300,
         temperature=0.7,
