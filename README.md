@@ -3,6 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](requirements.txt)
 [![CI Eval](https://github.com/ayush-s-tomar/resume-screener-lora/actions/workflows/eval.yml/badge.svg)](https://github.com/ayush-s-tomar/resume-screener-lora/actions/workflows/eval.yml)
+[![LoRA](https://img.shields.io/badge/PEFT-LoRA-ff9a00)](finetune_lora.ipynb)
 
 Fine-tuned Qwen2.5-0.5B-Instruct using LoRA to output structured JSON verdicts
 for resume screening, instead of relying on prompting alone.
@@ -10,13 +11,27 @@ for resume screening, instead of relying on prompting alone.
 **[Try the live demo →](https://resume-screener-finetune.onrender.com/)**
 *(hosted on Render free tier — may take 20–30s to wake up on first use. See [Deployment Note](#deployment-note) for how the demo backend differs from the trained model.)*
 
+**TL;DR**
+- 🎯 **Structure by training, not prompting** — the base model's unstructured prose becomes reliable, machine-parseable JSON after fine-tuning, with no coaxing required at inference time.
+- 📉 **Real eval numbers, no overfitting** — validation loss (0.2784 → 0.1714) tracked training loss closely across 3 epochs, shown in full below, not just claimed.
+- ⚡ **0.44% of weights trained** — LoRA (r=16) on q/k/v/o projections, 2.16M / 496M trainable params, on a free Colab T4.
+- 🔍 **Honest about the demo vs. the artifact** — the live demo runs a Groq-hosted swap for hosting reasons; the actual trained adapter runs locally with no API key (see [Deployment Note](#deployment-note)).
+
+**Jump to:** [Approach](#approach) · [Results](#results) · [Run locally](#run-locally-fine-tuned-adapter) · [Deployment note](#deployment-note) · [Stack](#stack)
+
 ![Resume Screener demo](assets/Resume%20Screener%20Lora.gif)
 
-## Demo
+<details>
+<summary><b>📷 Screenshot + 🎥 full video walkthrough</b></summary>
+<br/>
 
 https://github.com/user-attachments/assets/3328d75d-4e17-41aa-95d9-09d8749e6c41
 
+<br/>
+
 ![Resume Screener app screenshot](assets/resume-screener-screenshot.png)
+
+</details>
 
 ---
 
@@ -132,9 +147,11 @@ Details and setup for the hosted backend live in
 
 ## Stack
 
-**Fine-tuning:** PEFT/LoRA, Hugging Face Transformers, TRL, PyTorch, Colab T4 GPU
-**Local inference:** CLI scripts (`inference.py`, `compare_baseline_vs_finetuned.py`)
-**Hosted demo backend:** FastAPI, Groq API, Render
+| Layer | Technology |
+|---|---|
+| Fine-tuning | PEFT/LoRA, Hugging Face Transformers, TRL, PyTorch, Colab T4 GPU |
+| Local inference | CLI scripts (`inference.py`, `compare_baseline_vs_finetuned.py`) |
+| Hosted demo backend | FastAPI, Groq API, Render |
 
 ---
 
