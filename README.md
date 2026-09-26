@@ -17,7 +17,7 @@ for resume screening, instead of relying on prompting alone.
 - ⚡ **0.44% of weights trained** — LoRA (r=16) on q/k/v/o projections, 2.16M / 496M trainable params, on a free Colab T4.
 - 🔍 **Honest about the demo vs. the artifact** — the live demo runs a Groq-hosted swap for hosting reasons; the actual trained adapter runs locally with no API key (see [Deployment Note](#deployment-note)).
 
-**Jump to:** [Approach](#approach) · [Results](#results) · [Run locally](#run-locally-fine-tuned-adapter) · [Deployment note](#deployment-note) · [Stack](#stack)
+**Jump to:** [Approach](#approach) · [Results](#results) · [Run locally](#run-locally-fine-tuned-adapter) · [Deployment note](#deployment-note) · [Known limitations](#known-limitations) · [Stack](#stack)
 
 ![Resume Screener demo](assets/Resume%20Screener%20Lora.gif)
 
@@ -145,6 +145,14 @@ Details and setup for the hosted backend live in
 
 ---
 
+## Known Limitations
+
+- **Small eval set** — 96 held-out examples is enough to show the validation-loss trend has no divergence (see [Results](#results)), but not a large enough set to treat the exact loss values as a tight, generalizable benchmark.
+- **Tiny base model, by design** — Qwen2.5-0.5B was chosen specifically so LoRA fine-tuning could run on a free Colab T4; it trades absolute reasoning capacity for being trainable and runnable without paid compute. A larger base model would likely screen more nuanced resumes better, at the cost of needing real GPU budget.
+- **The live demo isn't the trained artifact** — covered in full in [Deployment Note](#deployment-note) above, but worth restating here: don't judge the actual fine-tuning result by the hosted demo's output, since it's running a different model.
+
+---
+
 ## Stack
 
 | Layer | Technology |
@@ -171,6 +179,6 @@ Distributed under the MIT License. See [`LICENSE`](LICENSE) for more information
 
 ## Author
 
-**Ayush Singh Tomar** — [GitHub](https://github.com/ayush-s-tomar)
+**Ayush Singh Tomar** — [GitHub](https://github.com/ayush-s-tomar) · [LinkedIn](https://www.linkedin.com/in/ayushsinghtomar) · [Portfolio](https://ayush-s-tomar.vercel.app)
 
 *Part of my AI developer portfolio -- agents and models that do real, measurable work. See also: [SalesAgent](https://github.com/ayush-s-tomar/salesagent), an autonomous B2B lead-research and outreach agent.*
