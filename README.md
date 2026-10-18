@@ -1,28 +1,21 @@
-# Resume Screener — LoRA Fine-Tuned (Qwen2.5-0.5B)
+# Resume Screener: LoRA Fine-Tuned Qwen2.5-0.5B
+
 [![Live Demo](https://img.shields.io/badge/demo-render-46e3b7?logo=render&logoColor=white)](https://resume-screener-finetune.onrender.com/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](requirements.txt)
 [![CI Eval](https://github.com/ayush-s-tomar/resume-screener-lora/actions/workflows/eval.yml/badge.svg)](https://github.com/ayush-s-tomar/resume-screener-lora/actions/workflows/eval.yml)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](requirements.txt)
 [![LoRA](https://img.shields.io/badge/PEFT-LoRA-ff9a00)](finetune_lora.ipynb)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Fine-tuned Qwen2.5-0.5B-Instruct using LoRA to output structured JSON verdicts
-for resume screening, instead of relying on prompting alone.
+A small open model, fine-tuned with LoRA to return **structured JSON verdicts** for resume screening by default, instead of relying on prompt engineering to coax them out.
 
-**[Try the live demo →](https://resume-screener-finetune.onrender.com/)**
-*(hosted on Render free tier — may take 20–30s to wake up on first use. See [Deployment Note](#deployment-note) for how the demo backend differs from the trained model.)*
+### 🌐 [Try the live demo →](https://resume-screener-finetune.onrender.com/)
 
-**TL;DR**
-- 🎯 **Structure by training, not prompting** — the base model's unstructured prose becomes reliable, machine-parseable JSON after fine-tuning, with no coaxing required at inference time.
-- 📉 **Real eval numbers, no overfitting** — validation loss (0.2784 → 0.1714) tracked training loss closely across 3 epochs, shown in full below, not just claimed.
-- ⚡ **0.44% of weights trained** — LoRA (r=16) on q/k/v/o projections, 2.16M / 496M trainable params, on a free Colab T4.
-- 🔍 **Honest about the demo vs. the artifact** — the live demo runs a Groq-hosted swap for hosting reasons; the actual trained adapter runs locally with no API key (see [Deployment Note](#deployment-note)).
-
-**Jump to:** [Approach](#approach) · [Results](#results) · [Run locally](#run-locally-fine-tuned-adapter) · [Deployment note](#deployment-note) · [Known limitations](#known-limitations) · [Stack](#stack)
+> **Heads-up:** the demo runs on Render's free tier, so the first request can take 20 to 30 seconds to wake up. The demo also **serves a different model** (Groq-hosted) than the one trained here. See the [Deployment Note](#deployment-note).
 
 ![Resume Screener demo](assets/Resume%20Screener%20Lora.gif)
 
 <details>
-<summary><b>📷 Screenshot + 🎥 full video walkthrough</b></summary>
+<summary><b>📷 Screenshot and 🎥 full video walkthrough</b></summary>
 <br/>
 
 https://github.com/user-attachments/assets/3328d75d-4e17-41aa-95d9-09d8749e6c41
@@ -35,57 +28,73 @@ https://github.com/user-attachments/assets/3328d75d-4e17-41aa-95d9-09d8749e6c41
 
 ---
 
+## TL;DR
+
+- 🎯 **Structure from training, not prompting.** The base model answers in free-form prose; the fine-tuned model returns parseable JSON with no special prompting.
+- 📉 **Validation tracked training.** Validation loss fell from 0.2784 to 0.1714 over 3 epochs, staying close to training loss throughout (full table in [Results](#results)).
+- ⚡ **0.44% of weights trained.** LoRA (r=16) on the q/k/v/o projections: 2.16M of 496M parameters, on a free Colab T4.
+- 🔍 **Demo vs. artifact, stated plainly.** The trained adapter runs locally with no API key; the hosted demo uses a Groq model for hosting reasons.
+
+**Jump to:** [Why](#why) · [Approach](#approach) · [Results](#results) · [Run Locally](#run-locally) · [Deployment Note](#deployment-note) · [Limitations](#known-limitations) · [Stack](#stack)
+
+---
+
 ## Why
 
-Prompting a base instruct model for resume screening produces unstructured,
-inconsistent prose — not something you can pipe into an ATS or scoring
-pipeline. This project fine-tunes a small open model so structured JSON
-output becomes the model's default behavior, not something you have to
-coax out with prompt engineering.
+Prompting a base instruct model to screen resumes yields inconsistent prose, which you can't pipe into an ATS or scoring pipeline. Fine-tuning a small model makes the JSON verdict its default behavior, so downstream code can rely on the output shape.
 
 ---
 
 ## Approach
 
-- Base model: Qwen2.5-0.5B-Instruct
-- Method: LoRA (r=16, alpha=32, dropout=0.05) targeting q/k/v/o projections
-- Trainable params: 2,162,688 / 496,195,456 total (**0.44%**) — the whole point of LoRA: near-full fine-tuning quality by training a tiny fraction of the weights, on a free-tier GPU, in a fraction of the time
-- Dataset: 800 train / 96 eval examples, resume text -> structured JSON verdict
-- 3 epochs on a free Colab T4 GPU
+| | |
+|---|---|
+| **Base model** | Qwen2.5-0.5B-Instruct |
+| **Method** | LoRA: r=16, alpha=32, dropout=0.05, targeting q/k/v/o projections |
+| **Trainable params** | 2,162,688 / 496,195,456 (**0.44%**) |
+| **Data** | 800 train / 96 eval examples, resume text → structured JSON verdict |
+| **Training** | 3 epochs on a free Colab T4 GPU |
 
-Full training run is in [`finetune_lora.ipynb`](finetune_lora.ipynb).
+LoRA trains a tiny fraction of the weights, which is what makes this feasible on free-tier hardware. The full run is in [`finetune_lora.ipynb`](finetune_lora.ipynb).
 
 ---
 
 ## Results
 
 | Epoch | Training Loss | Validation Loss |
-|-------|--------------|------------------|
-| 1     | 0.4078       | 0.2784           |
-| 2     | 0.1956       | 0.1883           |
-| 3     | 0.1713       | 0.1714           |
+|:-----:|:-------------:|:---------------:|
+| 1 | 0.4078 | 0.2784 |
+| 2 | 0.1956 | 0.1883 |
+| 3 | 0.1713 | 0.1714 |
 
-Validation loss tracked training loss closely with no divergence — no overfitting, meaning the model learned the JSON-verdict structure and screening logic in a way that generalizes, rather than memorizing the training examples.
+Validation loss stayed close to training loss with no divergence, which suggests the model learned the verdict format and screening pattern rather than memorizing examples.
 
-**Before vs After**
+### Before vs. after
 
-**Prompt:** Screen this resume for a Backend Engineer position and return a
-structured verdict. Resume: Bachelor's in CS, 4 years distributed backend
-experience, skilled in Python, PostgreSQL, Docker, Kubernetes.
+**Prompt:** *Screen this resume for a Backend Engineer position and return a structured verdict. Resume: Bachelor's in CS, 4 years distributed backend experience, skilled in Python, PostgreSQL, Docker, Kubernetes.*
 
-**Base model (no fine-tuning):** unstructured prose with markdown headers
-(Summary, Key Skills, Experience) — not machine-parseable.
+**Base model:** unstructured prose with markdown headers (Summary, Key Skills, Experience). Not machine-parseable.
 
 **Fine-tuned model:**
+
 ```json
-{"role": "Backend Engineer", "ats_score": 57, "verdict": "moderate_match", "matched_skills": ["Python", "PostgreSQL", "Docker", "Kubernetes"], "missing_skills": ["Java", "REST APIs", "Redis"], "years_experience": 4}
+{
+  "role": "Backend Engineer",
+  "ats_score": 57,
+  "verdict": "moderate_match",
+  "matched_skills": ["Python", "PostgreSQL", "Docker", "Kubernetes"],
+  "missing_skills": ["Java", "REST APIs", "Redis"],
+  "years_experience": 4
+}
 ```
 
-*CI note: the eval workflow above validates the training/eval pipeline in this repo, not the hosted demo backend described below.*
+*CI note: the eval workflow badge validates the training/eval pipeline in this repo, not the hosted demo backend.*
 
 ---
 
-## Run Locally (Fine-Tuned Adapter)
+## Run Locally
+
+Uses the trained LoRA adapter on top of the base Qwen2.5-0.5B-Instruct model from Hugging Face. **No API keys required.**
 
 ```bash
 git clone https://github.com/ayush-s-tomar/resume-screener-lora.git
@@ -94,19 +103,18 @@ cd resume-screener-lora
 python -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-
-python inference.py
-# Runs a built-in example resume and prints the structured JSON verdict
-
-python inference.py --role "Backend Engineer" --resume path/to/resume.txt
-# Screen your own resume -- accepts a file path or raw text via --resume
-
-python compare_baseline_vs_finetuned.py   # optional: base vs fine-tuned side by side
 ```
 
-No API keys required — runs against the LoRA adapter in
-`resume-screener-lora-adapter/`, loaded on top of the base
-Qwen2.5-0.5B-Instruct model from Hugging Face.
+```bash
+# Run a built-in example resume and print the JSON verdict
+python inference.py
+
+# Screen your own resume (file path or raw text via --resume)
+python inference.py --role "Backend Engineer" --resume path/to/resume.txt
+
+# Optional: base vs. fine-tuned, side by side
+python compare_baseline_vs_finetuned.py
+```
 
 ---
 
@@ -114,14 +122,14 @@ Qwen2.5-0.5B-Instruct model from Hugging Face.
 
 ```text
 resume-screener-lora/
-├── finetune_lora.ipynb # Full training notebook (data prep -> LoRA config -> training -> eval)
-├── inference.py # CLI inference script -- loads adapter, runs a single screening (supports --resume/--role)
-├── compare_baseline_vs_finetuned.py # Side-by-side base vs fine-tuned output comparison
-├── data/ # Train/eval JSONL datasets + dataset generator script
-├── resume-screener-lora-adapter/ # Trained LoRA adapter weights
-├── render-deploy/ # Hosted demo backend (see render-deploy/README.md)
-├── assets/ # Demo GIF and screenshot
-├── .github/workflows/ # CI eval workflow -- runs on push/PR
+├── finetune_lora.ipynb                # Training notebook: data prep → LoRA config → training → eval
+├── inference.py                       # CLI: loads adapter, runs one screening (--resume / --role)
+├── compare_baseline_vs_finetuned.py   # Side-by-side base vs. fine-tuned output
+├── data/                              # Train/eval JSONL datasets + generator script
+├── resume-screener-lora-adapter/      # Trained LoRA adapter weights
+├── render-deploy/                     # Hosted demo backend (see its README)
+├── assets/                            # Demo GIF and screenshot
+├── .github/workflows/                 # CI eval workflow (push/PR)
 ├── requirements.txt
 ├── LICENSE
 └── README.md
@@ -131,25 +139,17 @@ resume-screener-lora/
 
 ## Deployment Note
 
-The **trained LoRA adapter** (above) is the actual research artifact and runs
-fully locally with no API key. The **hosted live demo** link instead serves
-scoring through Groq's API (`openai/gpt-oss-20b`), not the local
-GGUF-quantized adapter -- a deliberate substitution after hitting repeated
-OOM/timeout failures running llama.cpp inference on Render's free tier
-(512MB RAM ceiling). This keeps the public demo link fast and reliably
-hostable without misrepresenting the training results above, which reflect
-the real fine-tuned model.
+The **trained LoRA adapter** is the actual research artifact and runs fully locally. The **hosted demo** instead scores resumes through Groq's API (`openai/gpt-oss-20b`), not the GGUF-quantized adapter. This was a deliberate substitution after repeated OOM and timeout failures running llama.cpp inference on Render's free tier (512 MB RAM ceiling), and it keeps the public link fast and reliably hosted.
 
-Details and setup for the hosted backend live in
-[`render-deploy/README.md`](render-deploy/README.md).
+The results above reflect the real fine-tuned model, so **don't judge the fine-tuning by the demo's output.** Setup details for the hosted backend are in [`render-deploy/README.md`](render-deploy/README.md).
 
 ---
 
 ## Known Limitations
 
-- **Small eval set** — 96 held-out examples is enough to show the validation-loss trend has no divergence (see [Results](#results)), but not a large enough set to treat the exact loss values as a tight, generalizable benchmark.
-- **Tiny base model, by design** — Qwen2.5-0.5B was chosen specifically so LoRA fine-tuning could run on a free Colab T4; it trades absolute reasoning capacity for being trainable and runnable without paid compute. A larger base model would likely screen more nuanced resumes better, at the cost of needing real GPU budget.
-- **The live demo isn't the trained artifact** — covered in full in [Deployment Note](#deployment-note) above, but worth restating here: don't judge the actual fine-tuning result by the hosted demo's output, since it's running a different model.
+- **Small eval set.** 96 held-out examples is enough to show the loss trend, but not to treat the exact values as a tight benchmark.
+- **Tiny base model, by design.** Qwen2.5-0.5B was chosen so LoRA training fits on a free Colab T4. A larger base would likely handle more nuanced resumes better, at the cost of real GPU budget.
+- **Demo ≠ trained model.** See the [Deployment Note](#deployment-note).
 
 ---
 
@@ -157,28 +157,22 @@ Details and setup for the hosted backend live in
 
 | Layer | Technology |
 |---|---|
-| Fine-tuning | PEFT/LoRA, Hugging Face Transformers, TRL, PyTorch, Colab T4 GPU |
+| Fine-tuning | PEFT/LoRA, Hugging Face Transformers, TRL, PyTorch, Colab T4 |
 | Local inference | CLI scripts (`inference.py`, `compare_baseline_vs_finetuned.py`) |
-| Hosted demo backend | FastAPI, Groq API, Render |
+| Hosted demo | FastAPI, Groq API, Render |
 
 ---
 
 ## Contributing
 
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/ayush-s-tomar/resume-screener-lora/issues).
-
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Issues and pull requests are welcome. Check the [issues page](https://github.com/ayush-s-tomar/resume-screener-lora/issues), then fork the repo, create a feature branch, and open a PR.
 
 ## License
 
-Distributed under the MIT License. See [`LICENSE`](LICENSE) for more information.
+MIT. See [`LICENSE`](LICENSE).
 
 ## Author
 
-**Ayush Singh Tomar** — [GitHub](https://github.com/ayush-s-tomar) · [LinkedIn](https://www.linkedin.com/in/ayushsinghtomar) · [Portfolio](https://ayush-s-tomar.vercel.app)
+**Ayush Singh Tomar**: [GitHub](https://github.com/ayush-s-tomar) · [LinkedIn](https://www.linkedin.com/in/ayushsinghtomar) · [Portfolio](https://ayush-s-tomar.vercel.app)
 
-*Part of my AI developer portfolio -- agents and models that do real, measurable work. See also: [SalesAgent](https://github.com/ayush-s-tomar/salesagent), an autonomous B2B lead-research and outreach agent.*
+*Part of my AI developer portfolio: agents and models that do real, measurable work. See also [SalesAgent](https://github.com/ayush-s-tomar/salesagent), an autonomous B2B lead-research and outreach agent.*
