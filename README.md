@@ -41,7 +41,7 @@ https://github.com/user-attachments/assets/3328d75d-4e17-41aa-95d9-09d8749e6c41
 
 ## Why
 
-Prompting a base instruct model to screen resumes yields inconsistent prose, which you can't pipe into an ATS or scoring pipeline. Fine-tuning a small model makes the JSON verdict its default behavior, so downstream code can rely on the output shape.
+A base instruct model given a loose prompt answers resume screening in inconsistent prose, and even with an explicit JSON-schema prompt its verdicts match the target rubric only 17.7% of the time, so you can't pipe it into an ATS or scoring pipeline. Fine-tuning a small model makes the JSON verdict its default behavior and lifts rubric agreement to 88.5%, so downstream code can rely on both the output shape and the scores.
 
 ---
 
@@ -77,13 +77,13 @@ Validation loss stayed close to training loss with no divergence, which suggests
 | Verdict accuracy | 17.7% (17/96) | 88.5% (85/96) |
 | Mean absolute score error | 32.0 | 5.4 |
 
-Both models produce valid JSON, so the fine-tune's gain is correctness rather than output format. Reproduce with `python compare_baseline_vs_finetuned.py`; raw numbers are in `comparison_results.json`.
+The zero-shot baseline is prompted with the exact JSON schema, and both models produce valid JSON, so the fine-tune's gain is correctness rather than output format. Reproduce with `python compare_baseline_vs_finetuned.py`; raw numbers are in `comparison_results.json`.
 
 ### Before vs. after
 
 **Prompt:** *Screen this resume for a Backend Engineer position and return a structured verdict. Resume: Bachelor's in CS, 4 years distributed backend experience, skilled in Python, PostgreSQL, Docker, Kubernetes.*
 
-**Base model:** unstructured prose with markdown headers (Summary, Key Skills, Experience). Not machine-parseable.
+**Base model:** unstructured prose with markdown headers (Summary, Key Skills, Experience) when given only a loose "structured verdict" prompt. Not machine-parseable. (With the explicit JSON-schema prompt used in the held-out evaluation below, the base model also returns valid JSON, but its verdicts are far less accurate.)
 
 **Fine-tuned model:**
 
