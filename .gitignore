@@ -1,4 +1,4 @@
-﻿llama.cpp/
+llama.cpp/
 llama-release/
 llama-release.zip
 llamacpp-venv/
@@ -6,3 +6,9 @@ resume-screener-lora/
 quantized_model/
 *.gguf
 __pycache__/
+
+# local build artifacts (too large for git)
+venv/
+*-venv/
+merged-model/
+merged_model/

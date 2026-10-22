@@ -1,0 +1,12 @@
+{
+  "zero_shot": {
+    "valid_json_rate": 1.0,
+    "verdict_accuracy": 0.177,
+    "mean_absolute_score_error": 32.03
+  },
+  "fine_tuned": {
+    "valid_json_rate": 1.0,
+    "verdict_accuracy": 0.885,
+    "mean_absolute_score_error": 5.39
+  }
+}

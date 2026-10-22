@@ -30,7 +30,7 @@ https://github.com/user-attachments/assets/3328d75d-4e17-41aa-95d9-09d8749e6c41
 
 ## TL;DR
 
-- 🎯 **Structure from training, not prompting.** The base model answers in free-form prose; the fine-tuned model returns parseable JSON with no special prompting.
+- 🎯 **Accuracy from training, not prompting.** On 96 held-out examples, verdict accuracy rose from 17.7% (zero-shot) to 88.5%, and mean score error fell from 32.0 to 5.4 points.
 - 📉 **Validation tracked training.** Validation loss fell from 0.2784 to 0.1714 over 3 epochs, staying close to training loss throughout (full table in [Results](#results)).
 - ⚡ **0.44% of weights trained.** LoRA (r=16) on the q/k/v/o projections: 2.16M of 496M parameters, on a free Colab T4.
 - 🔍 **Demo vs. artifact, stated plainly.** The trained adapter runs locally with no API key; the hosted demo uses a Groq model for hosting reasons.
@@ -68,6 +68,16 @@ LoRA trains a tiny fraction of the weights, which is what makes this feasible on
 | 3 | 0.1713 | 0.1714 |
 
 Validation loss stayed close to training loss with no divergence, which suggests the model learned the verdict format and screening pattern rather than memorizing examples.
+
+### Held-out evaluation (96 examples)
+
+| Metric | Zero-shot base | Fine-tuned |
+|---|---|---|
+| Valid JSON rate | 100% | 100% |
+| Verdict accuracy | 17.7% (17/96) | 88.5% (85/96) |
+| Mean absolute score error | 32.0 | 5.4 |
+
+Both models produce valid JSON, so the fine-tune's gain is correctness rather than output format. Reproduce with `python compare_baseline_vs_finetuned.py`; raw numbers are in `comparison_results.json`.
 
 ### Before vs. after
 
@@ -147,7 +157,8 @@ The results above reflect the real fine-tuned model, so **don't judge the fine-t
 
 ## Known Limitations
 
-- **Small eval set.** 96 held-out examples is enough to show the loss trend, but not to treat the exact values as a tight benchmark.
+- **Small eval set.** 96 held-out examples is enough to show the loss trend and the size of the accuracy gap, but not to treat the exact values as a tight benchmark.
+- **Labels come from the repo's dataset generator.** Verdict accuracy measures agreement with that rubric (`data/generate_dataset.py`), not agreement with human recruiters.
 - **Tiny base model, by design.** Qwen2.5-0.5B was chosen so LoRA training fits on a free Colab T4. A larger base would likely handle more nuanced resumes better, at the cost of real GPU budget.
 - **Demo ≠ trained model.** See the [Deployment Note](#deployment-note).
 

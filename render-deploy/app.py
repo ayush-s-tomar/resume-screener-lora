@@ -1,4 +1,4 @@
-﻿import os
+import os
 import unicodedata
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
@@ -266,7 +266,7 @@ def home():
         </div>
         <p class="desc">AI-powered resume evaluator served via Groq (gpt-oss-20b) &mdash; scores a resume against a target role and explains the reasoning, so it can support quick screening decisions.</p>
         <div class="badges">
-            <span class="badge">LoRA Fine-Tuned</span>
+            <span class="badge">Adapter runs locally</span>
             <span class="badge">Groq API</span>
             <span class="badge">gpt-oss-20b</span>
             <span class="badge">FastAPI Backend</span>
@@ -294,7 +294,7 @@ def home():
         <div id="result"></div>
     </div>
 
-    <footer>Fine-tuned LoRA model &middot; served via Groq</footer>
+    <footer>Demo scored via Groq (gpt-oss-20b). The trained LoRA adapter runs locally, see the GitHub repo</footer>
 </div>
 <script>
 async function scoreResume() {
