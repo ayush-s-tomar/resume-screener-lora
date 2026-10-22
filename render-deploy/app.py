@@ -296,9 +296,12 @@ PAGE = r"""<!DOCTYPE html>
     <div class="panel">
         <div class="examples">
             <span class="lbl">Try an example:</span>
-            <button class="ex" type="button" onclick="loadExample('strong')">Strong match</button>
-            <button class="ex" type="button" onclick="loadExample('partial')">Partial match</button>
-            <button class="ex" type="button" onclick="loadExample('poor')">Poor match</button>
+            <button class="ex" type="button" onclick="loadExample('backend')">Backend Engineer</button>
+            <button class="ex" type="button" onclick="loadExample('frontend')">Frontend Engineer</button>
+            <button class="ex" type="button" onclick="loadExample('ai')">AI Engineer</button>
+            <button class="ex" type="button" onclick="loadExample('software')">Software Developer</button>
+            <button class="ex" type="button" onclick="loadExample('devops')">DevOps Engineer</button>
+            <button class="ex" type="button" onclick="loadExample('mismatch')">Career mismatch</button>
         </div>
         <div class="field">
             <label for="role">&#127919; Target role</label>
@@ -309,7 +312,7 @@ PAGE = r"""<!DOCTYPE html>
             <textarea id="resume" placeholder="Paste resume text here..." maxlength="12000"></textarea>
         </div>
         <button id="btn" type="button" onclick="scoreResume()">Screen resume &rarr;</button>
-        <p class="hint" id="hint">Pick an example above or paste a resume, then press Screen resume (Ctrl+Enter also works).</p>
+        <p class="hint" id="hint">Pick a sample resume above (all fictional) or paste your own, then press Screen resume (Ctrl+Enter also works).</p>
         <div id="msg"></div>
 
         <div id="out" hidden>
@@ -337,31 +340,58 @@ PAGE = r"""<!DOCTYPE html>
 </div>
 <script>
 const EXAMPLES = {
-    strong: {
-        role: 'Backend Engineer',
+    backend: {
+        role: "Backend Engineer",
         text: [
-            'Rahul Verma. Backend Engineer, 5 years of experience.',
-            'Skills: Python, FastAPI, PostgreSQL, Redis, Docker, Kubernetes, REST APIs, AWS.',
-            'Experience: Built and scaled payment microservices handling 2M requests/day. Designed REST APIs with FastAPI and PostgreSQL, cut p95 latency by 40% with Redis caching, and ran services on Kubernetes with CI/CD.',
-            'Education: B.Tech in Computer Science.'
+            "Backend Engineer, 5 years of experience.",
+            "Skills: Python, FastAPI, PostgreSQL, Redis, Docker, Kubernetes, REST APIs, AWS.",
+            "Experience: Built and scaled payment microservices handling 2M requests/day. Designed REST APIs with FastAPI and PostgreSQL, cut p95 latency by 40% with Redis caching, and ran services on Kubernetes with CI/CD.",
+            "Education: B.Tech in Computer Science."
         ].join('\n')
     },
-    partial: {
-        role: 'Backend Engineer',
+    frontend: {
+        role: "Frontend Engineer",
         text: [
-            'Neha Singh. Junior developer, 1 year of experience.',
-            'Skills: Python, Flask, MySQL, Git.',
-            'Experience: Built internal CRUD dashboards in Flask for a small team. Wrote basic unit tests and fixed bugs in a legacy PHP codebase.',
-            'Education: B.Tech in Information Technology.'
+            "Frontend Developer, 2 years of experience.",
+            "Skills: JavaScript, React, HTML, CSS, Git, REST API integration.",
+            "Experience: Built responsive marketing pages and an internal admin dashboard in React for a 10-person startup. Fixed cross-browser layout bugs and integrated REST APIs. Raised the Lighthouse performance score of the main landing page from 62 to 85.",
+            "Education: B.Tech in Information Technology."
         ].join('\n')
     },
-    poor: {
-        role: 'Backend Engineer',
+    ai: {
+        role: "AI Engineer",
         text: [
-            'Aman Gupta. Graphic Designer, 6 years of experience.',
-            'Skills: Photoshop, Illustrator, Figma, Brand Identity, Typography.',
-            'Experience: Designed branding and print campaigns for retail clients. Led a team of 3 designers on packaging projects.',
-            'Education: Bachelor of Fine Arts.'
+            "AI Engineer, 3 years of experience.",
+            "Skills: Python, PyTorch, LangChain, LangGraph, RAG, Qdrant, pgvector, FastAPI, Docker, LLM evaluation, prompt engineering.",
+            "Experience: Built a retrieval-augmented support assistant over 50,000 documents using hybrid search and reranking, raising answer accuracy from 71% to 89% on an internal eval set. Fine-tuned a 0.5B model with LoRA to return structured JSON and served it behind a FastAPI service. Built multi-agent workflows with LangGraph and added tracing and automated evals to catch regressions.",
+            "Education: B.Tech in Computer Science."
+        ].join('\n')
+    },
+    software: {
+        role: "Software Developer",
+        text: [
+            "Recent graduate applying for Software Developer roles.",
+            "Skills: Python, Java, SQL, Git, data structures and algorithms, basic HTML and CSS.",
+            "Experience: 3-month software internship fixing bugs and writing unit tests in a Java Spring service. Built a library management web app in Flask with SQLite and a command-line expense tracker. Solved 250+ practice problems on competitive programming sites.",
+            "Education: B.Tech in Computer Science."
+        ].join('\n')
+    },
+    devops: {
+        role: "DevOps Engineer",
+        text: [
+            "Systems Administrator moving into DevOps, 4 years of experience.",
+            "Skills: Linux, Bash, Docker, Jenkins, AWS (EC2, S3), Git, Nagios.",
+            "Experience: Administered 40 Linux servers and automated patching and backups with Bash scripts. Containerized three internal tools with Docker. Built Jenkins pipelines for nightly builds and cut manual deploy time from 2 hours to 20 minutes.",
+            "Education: B.Sc in Information Technology."
+        ].join('\n')
+    },
+    mismatch: {
+        role: "Backend Engineer",
+        text: [
+            "Graphic Designer, 6 years of experience.",
+            "Skills: Photoshop, Illustrator, Figma, Brand Identity, Typography.",
+            "Experience: Designed branding and print campaigns for retail clients. Led a team of 3 designers on packaging projects.",
+            "Education: Bachelor of Fine Arts."
         ].join('\n')
     }
 };
