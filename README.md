@@ -119,7 +119,18 @@ Both rank the resumes in a broadly similar order (Backend and AI at the top) and
 
 ## Run Locally
 
-Uses the trained LoRA adapter on top of the base Qwen2.5-0.5B-Instruct model from Hugging Face. **No API keys required.**
+Uses the trained LoRA adapter on top of the base Qwen2.5-0.5B-Instruct model from Hugging Face. **No API keys required.** The adapter is also published on the Hugging Face Hub: [Kus-hal/resume-screener-lora](https://huggingface.co/Kus-hal/resume-screener-lora), with a GGUF-quantized build at [Kus-hal/resume-screener-gguf](https://huggingface.co/Kus-hal/resume-screener-gguf).
+
+To load the adapter straight from the Hub instead of a local clone:
+
+```python
+from peft import PeftModel
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+base = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2.5-0.5B-Instruct")
+model = PeftModel.from_pretrained(base, "Kus-hal/resume-screener-lora")
+tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B-Instruct")
+```
 
 ```bash
 git clone https://github.com/ayush-s-tomar/resume-screener-lora.git
