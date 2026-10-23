@@ -79,6 +79,21 @@ Validation loss stayed close to training loss with no divergence, which suggests
 
 The zero-shot baseline is prompted with the exact JSON schema, and both models produce valid JSON, so the fine-tune's gain is correctness rather than output format. Reproduce with `python compare_baseline_vs_finetuned.py`; raw numbers are in `comparison_results.json`.
 
+### Sanity check on hand-written resumes
+
+The generator's resumes follow templates, so I also ran six hand-written resumes (the demo's example buttons) through the hosted demo and the local adapter. This is a sanity check on six examples, not an evaluation.
+
+| Resume | Hosted demo (Groq) | Local adapter |
+|---|---|---|
+| Backend Engineer, 5 yrs | 90, strong_match | 68, moderate_match |
+| Frontend Engineer, 2 yrs | 60, moderate_match | 49, weak_match |
+| AI Engineer, 3 yrs | 85, strong_match | 64, moderate_match |
+| Software Developer, fresher | 70, moderate_match | 48, weak_match |
+| DevOps Engineer, career switcher | 70, moderate_match | 58, moderate_match |
+| Graphic designer for Backend Engineer | 10, weak_match | 28, weak_match |
+
+Both rank the resumes in a broadly similar order (Backend and AI at the top) and both reject the graphic designer, but the adapter is more conservative: it never returns `strong_match` here and puts two mid-level resumes in `weak_match`. A plausible explanation, not tested, is that it learned the score distribution of the synthetic generator, which hand-written resumes do not follow. Adding varied, human-written resumes to the training data is the obvious next step.
+
 ### Before vs. after
 
 **Prompt:** *Screen this resume for a Backend Engineer position and return a structured verdict. Resume: Bachelor's in CS, 4 years distributed backend experience, skilled in Python, PostgreSQL, Docker, Kubernetes.*
@@ -90,7 +105,7 @@ The zero-shot baseline is prompted with the exact JSON schema, and both models p
 ```json
 {
   "role": "Backend Engineer",
-  "ats_score": 57,
+  "ats_score": 56,
   "verdict": "moderate_match",
   "matched_skills": ["Python", "PostgreSQL", "Docker", "Kubernetes"],
   "missing_skills": ["Java", "REST APIs", "Redis"],
