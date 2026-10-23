@@ -30,7 +30,7 @@ https://github.com/user-attachments/assets/3328d75d-4e17-41aa-95d9-09d8749e6c41
 
 ## TL;DR
 
-- 🎯 **Accuracy from training, not prompting.** On 96 held-out examples, verdict accuracy rose from 17.7% (zero-shot) to 88.5%, and mean score error fell from 32.0 to 5.4 points.
+- 🎯 **Accuracy from training, not prompting.** On 96 held-out examples, verdict accuracy was 17.7% zero-shot, 18.8% with the score ranges added to the prompt, and 88.5% after fine-tuning; mean score error was 32.0, 35.1 and 5.4 points respectively.
 - 📉 **Validation tracked training.** Validation loss fell from 0.2784 to 0.1714 over 3 epochs, staying close to training loss throughout (full table in [Results](#results)).
 - ⚡ **0.44% of weights trained.** LoRA (r=16) on the q/k/v/o projections: 2.16M of 496M parameters, on a free Colab T4.
 - 🔍 **Demo vs. artifact, stated plainly.** The trained adapter runs locally with no API key; the hosted demo uses a Groq model for hosting reasons.
@@ -41,7 +41,7 @@ https://github.com/user-attachments/assets/3328d75d-4e17-41aa-95d9-09d8749e6c41
 
 ## Why
 
-A base instruct model given a loose prompt answers resume screening in inconsistent prose, and even with an explicit JSON-schema prompt its verdicts match the target rubric only 17.7% of the time, so you can't pipe it into an ATS or scoring pipeline. Fine-tuning a small model makes the JSON verdict its default behavior and lifts rubric agreement to 88.5%, so downstream code can rely on both the output shape and the scores.
+A base instruct model given a loose prompt answers resume screening in inconsistent prose, and even with an explicit JSON-schema prompt its verdicts match the target rubric only 17.7% of the time (18.8% with the score ranges in the prompt too), so you can't pipe it into an ATS or scoring pipeline. Fine-tuning a small model makes the JSON verdict its default behavior and lifts rubric agreement to 88.5%, so downstream code can rely on both the output shape and the scores.
 
 ---
 
@@ -71,13 +71,13 @@ Validation loss stayed close to training loss with no divergence, which suggests
 
 ### Held-out evaluation (96 examples)
 
-| Metric | Zero-shot base | Fine-tuned |
-|---|---|---|
-| Valid JSON rate | 100% | 100% |
-| Verdict accuracy | 17.7% (17/96) | 88.5% (85/96) |
-| Mean absolute score error | 32.0 | 5.4 |
+| Metric | Zero-shot base | Zero-shot + rubric | Fine-tuned |
+|---|---|---|---|
+| Valid JSON rate | 100% | 100% | 100% |
+| Verdict accuracy | 17.7% (17/96) | 18.8% (18/96) | 88.5% (85/96) |
+| Mean absolute score error | 32.0 | 35.1 | 5.4 |
 
-The zero-shot baseline is prompted with the exact JSON schema, and both models produce valid JSON, so the fine-tune's gain is correctness rather than output format. Reproduce with `python compare_baseline_vs_finetuned.py`; raw numbers are in `comparison_results.json`.
+Telling the baseline the verdict score ranges (measured on the training set only) does not help: it reaches 18.8% verdict accuracy and a mean score error of 35.1, no better than without them. The 0.5B base model cannot apply the rubric from the prompt alone, while fine-tuning reaches 88.5% verdict accuracy and a mean score error of 5.4. All configurations are prompted with, or trained on, the same JSON schema, so the comparison is about correctness rather than output format. Reproduce with `python compare_baseline_vs_finetuned.py`; raw numbers are in `comparison_results.json`.
 
 ### Sanity check on hand-written resumes
 
@@ -185,6 +185,7 @@ The results above reflect the real fine-tuned model, so **don't judge the fine-t
 
 - **Small eval set.** 96 held-out examples is enough to show the loss trend and the size of the accuracy gap, but not to treat the exact values as a tight benchmark.
 - **Labels come from the repo's dataset generator.** Verdict accuracy measures agreement with that rubric (`data/generate_dataset.py`), not agreement with human recruiters.
+- **The baseline is the same 0.5B model.** A larger prompted model can follow the score ranges (the hosted demo does this with gpt-oss-20b on hand-written resumes, though that was not measured on the held-out set), so the claim is about small models, not that prompting cannot work.
 - **Tiny base model, by design.** Qwen2.5-0.5B was chosen so LoRA training fits on a free Colab T4. A larger base would likely handle more nuanced resumes better, at the cost of real GPU budget.
 - **Demo ≠ trained model.** See the [Deployment Note](#deployment-note).
 

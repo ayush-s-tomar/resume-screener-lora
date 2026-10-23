@@ -289,7 +289,7 @@ PAGE = r"""<!DOCTYPE html>
     <details class="panel">
         <summary>How this model works</summary>
         <div class="how-body">
-            The resume and target role are sent to Groq&rsquo;s hosted gpt-oss-20b, prompted to return the JSON schema that a LoRA fine-tuned Qwen2.5-0.5B was trained on: role, ats_score (0-100), verdict, matched_skills, missing_skills and years_experience. The demo adds a short rationale. The fine-tuned adapter itself runs locally with no API key; on 96 held-out examples it reached 88.5% verdict accuracy versus 17.7% for the zero-shot base model. This hosted demo uses Groq because Render&rsquo;s free tier (512 MB RAM) cannot run the model. Details are in the <a href="https://github.com/ayush-s-tomar/resume-screener-lora" target="_blank" rel="noopener">GitHub repo</a>.
+            The resume and target role are sent to Groq&rsquo;s hosted gpt-oss-20b, prompted to return the JSON schema that a LoRA fine-tuned Qwen2.5-0.5B was trained on: role, ats_score (0-100), verdict, matched_skills, missing_skills and years_experience. The demo adds a short rationale. The fine-tuned adapter itself runs locally with no API key; on 96 held-out examples it reached 88.5% verdict accuracy versus 17.7% for the zero-shot base model (18.8% when that baseline is given the verdict score ranges). This hosted demo uses Groq because Render&rsquo;s free tier (512 MB RAM) cannot run the model. Details are in the <a href="https://github.com/ayush-s-tomar/resume-screener-lora" target="_blank" rel="noopener">GitHub repo</a>.
         </div>
     </details>
 
