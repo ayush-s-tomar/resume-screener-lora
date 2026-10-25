@@ -1,4 +1,4 @@
-﻿# Hosted Demo Backend
+# Hosted Demo Backend
 
 This folder is a separate, simplified serving layer for the live demo link --
 it is not the fine-tuned model itself. See the top-level README's
@@ -7,13 +7,13 @@ Deployment Note section for why this exists.
 ## What this is
 
 A minimal FastAPI app that scores resumes via Groq's hosted API
-(openai/gpt-oss-20b), with a simple dark-themed HTML frontend served at /.
+(openai/gpt-oss-20b), with a dark-themed HTML frontend served at /. It prompts the model for the same JSON schema the adapter was trained to emit (score out of 100, verdict, matched and missing skills) and includes six example resumes.
 
 ## What this is NOT
 
 This does not load or run the LoRA adapter in
 ../resume-screener-lora-adapter/. For the actual trained model, use
-inference.py or app.py (Streamlit) at the repo root.
+inference.py at the repo root.
 
 ## Run locally
 
