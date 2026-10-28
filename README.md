@@ -30,7 +30,7 @@ https://github.com/user-attachments/assets/3328d75d-4e17-41aa-95d9-09d8749e6c41
 
 ## TL;DR
 
-- 🎯 **Accuracy from training, not prompting.** On 96 held-out examples, verdict accuracy was 17.7% zero-shot, 18.8% with the score ranges added to the prompt, and 88.5% after fine-tuning; mean score error was 32.0, 35.1 and 5.4 points respectively.
+- 🎯 **Accuracy from training, not prompting.** On 96 held-out examples, verdict accuracy was 17.7% zero-shot, 18.8% with the score ranges added to the prompt, and 88.5% after fine-tuning; mean score error was 32.0, 35.1 and 5.4 points respectively. A larger prompted model (gpt-oss-20b on Groq, same prompt and score ranges) reached 55.2% and 16.4.
 - 📉 **Validation tracked training.** Validation loss fell from 0.2784 to 0.1714 over 3 epochs, staying close to training loss throughout (full table in [Results](#results)).
 - ⚡ **0.44% of weights trained.** LoRA (r=16) on the q/k/v/o projections: 2.16M of 496M parameters, on a free Colab T4.
 - 🔍 **Demo vs. artifact, stated plainly.** The trained adapter runs locally with no API key; the hosted demo uses a Groq model for hosting reasons.
@@ -71,13 +71,15 @@ Validation loss stayed close to training loss with no divergence, which suggests
 
 ### Held-out evaluation (96 examples)
 
-| Metric | Zero-shot base | Zero-shot + rubric | Fine-tuned |
-|---|---|---|---|
-| Valid JSON rate | 100% | 100% | 100% |
-| Verdict accuracy | 17.7% (17/96) | 18.8% (18/96) | 88.5% (85/96) |
-| Mean absolute score error | 32.0 | 35.1 | 5.4 |
+| Metric | Zero-shot base | Zero-shot + rubric | Fine-tuned | gpt-oss-20b + rubric (Groq, prompted) |
+|---|---|---|---|---|
+| Valid JSON rate | 100% | 100% | 100% | 100% |
+| Verdict accuracy | 17.7% (17/96) | 18.8% (18/96) | 88.5% (85/96) | 55.2% (53/96) |
+| Mean absolute score error | 32.0 | 35.1 | 5.4 | 16.4 |
 
 Telling the baseline the verdict score ranges (measured on the training set only) does not help: it reaches 18.8% verdict accuracy and a mean score error of 35.1, no better than without them. The 0.5B base model cannot apply the rubric from the prompt alone, while fine-tuning reaches 88.5% verdict accuracy and a mean score error of 5.4. All configurations are prompted with, or trained on, the same JSON schema, so the comparison is about correctness rather than output format. Reproduce with `python compare_baseline_vs_finetuned.py`; raw numbers are in `comparison_results.json`.
+
+The last column is a larger prompted model rather than a fine-tuned one: `openai/gpt-oss-20b` on Groq, with the same system prompt, score ranges and inputs as the rubric baseline and no fine-tuning. It reaches 55.2% verdict accuracy and a mean score error of 16.4; the fine-tuned 0.5B adapter still leads on verdict accuracy (88.5% vs 55.2%), and the adapter has the lower mean score error (5.4 vs 16.4 points). The trade-off is different, though: a hosted 20B model costs an API call per resume and needs network access, while the 0.5B adapter runs locally. Reproduce with `python eval_groq_baseline.py` (needs `GROQ_API_KEY`); raw numbers are in `groq_baseline_results.json`.
 
 ### Sanity check on hand-written resumes
 
@@ -139,6 +141,9 @@ python inference.py --role "Backend Engineer" --resume path/to/resume.txt
 
 # Optional: re-run the held-out evaluation (slow on CPU)
 python compare_baseline_vs_finetuned.py
+
+# Optional: the same eval with a larger prompted model (needs GROQ_API_KEY)
+python eval_groq_baseline.py
 ```
 
 To load the adapter straight from the Hub instead of a local clone:
@@ -161,6 +166,7 @@ resume-screener-lora/
 ├── finetune_lora.ipynb                # Training notebook: data prep → LoRA config → training → eval
 ├── inference.py                       # CLI: loads adapter, runs one screening (--resume / --role)
 ├── compare_baseline_vs_finetuned.py   # Held-out eval: zero-shot vs. zero-shot + rubric vs. fine-tuned
+├── eval_groq_baseline.py             # Same eval with a larger prompted model (gpt-oss-20b on Groq)
 ├── data/                              # Train/eval JSONL datasets + generator script
 ├── resume-screener-lora-adapter/      # Trained LoRA adapter weights
 ├── render-deploy/                     # Hosted demo backend (see its README)
@@ -185,7 +191,7 @@ The results above reflect the real fine-tuned model, so **don't judge the fine-t
 
 - **Small eval set.** 96 held-out examples is enough to show the loss trend and the size of the accuracy gap, but not to treat the exact values as a tight benchmark.
 - **Labels come from the repo's dataset generator.** Verdict accuracy measures agreement with that rubric (`data/generate_dataset.py`), not agreement with human recruiters.
-- **The baseline is the same 0.5B model.** A larger prompted model can follow the score ranges (the hosted demo does this with gpt-oss-20b on hand-written resumes, though that was not measured on the held-out set), so the claim is about small models, not that prompting cannot work.
+- **The main baselines are the same 0.5B model.** The last column of the evaluation table is a larger prompted model (gpt-oss-20b on Groq, 55.2% verdict accuracy), so the claim is about what a small fine-tuned local model can do, not that prompting cannot work.
 - **Tiny base model, by design.** Qwen2.5-0.5B was chosen so LoRA training fits on a free Colab T4. A larger base would likely handle more nuanced resumes better, at the cost of real GPU budget.
 - **Demo ≠ trained model.** See the [Deployment Note](#deployment-note).
 

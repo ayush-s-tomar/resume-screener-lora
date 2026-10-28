@@ -1,0 +1,26 @@
+{
+  "valid_json_rate": 1.0,
+  "verdict_accuracy": 0.552,
+  "mean_absolute_score_error": 16.36,
+  "n_examples": 96,
+  "api_errors": 0,
+  "model": "openai/gpt-oss-20b",
+  "prompt": "same system prompt, score ranges and user prompts as the zero-shot + rubric baseline",
+  "reasoning_effort": "low",
+  "temperature": 0,
+  "rubric_ranges": {
+    "strong_match": [
+      75,
+      100
+    ],
+    "moderate_match": [
+      50,
+      74
+    ],
+    "weak_match": [
+      8,
+      48
+    ]
+  },
+  "date": "2026-10-28"
+}
