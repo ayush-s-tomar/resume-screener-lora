@@ -21,7 +21,7 @@ on:
   schedule:
     - cron: 17 3 * * 1
 concurrency:
-  group: eval-${{ github.ref }}
+  group: eval-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -70,11 +70,11 @@ jobs:
 
       - name: Lint with pylint
         run: |
-          pylint inference.py --disable=all --enable=E --exit-zero
+          pylint --jobs=0 inference.py --disable=all --enable=E --exit-zero
 
       - name: Run baseline vs fine-tuned comparison
         run: |
           python -u compare_baseline_vs_finetuned.py
         env:
-          EVAL_LIMIT: "10"
-        continue-on-error: true
+          EVAL_LIMIT: "${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '10' || '4' }}"
+        continue-on-error: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
