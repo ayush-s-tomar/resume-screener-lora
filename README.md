@@ -194,6 +194,7 @@ The results above reflect the real fine-tuned model, so **don't judge the fine-t
 - **Small eval set.** 96 held-out examples is enough to show the loss trend and the size of the accuracy gap, but not to treat the exact values as a tight benchmark.
 - **Labels come from the repo's dataset generator.** Verdict accuracy measures agreement with that rubric (`data/generate_dataset.py`), not agreement with human recruiters.
 - **The main baselines are the same 0.5B model.** The last column of the evaluation table is a larger prompted model (gpt-oss-20b on Groq, 55.2% verdict accuracy), so the claim is about what a small fine-tuned local model can do, not that prompting cannot work.
+- **Skill lists are not evaluated.** The evaluation scores the verdict and the score only. The `matched_skills` and `missing_skills` lists can be wrong: in a run of the Colab notebook the adapter listed REST APIs and AWS as missing for a resume that names both, and for a graphic designer applying to a backend role it listed the designer's own skills as matched.
 - **Tiny base model, by design.** Qwen2.5-0.5B was chosen so LoRA training fits on a free Colab T4. A larger base would likely handle more nuanced resumes better, at the cost of real GPU budget.
 - **Demo ≠ trained model.** See the [Deployment Note](#deployment-note).
 
