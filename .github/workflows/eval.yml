@@ -3,8 +3,26 @@ name: eval
 on:
   push:
     branches: [main]
+    paths:
+      - '*.py'
+      - data/**
+      - resume-screener-lora-adapter/**
+      - requirements*.txt
+      - .github/workflows/eval.yml
   pull_request:
     branches: [main]
+    paths:
+      - '*.py'
+      - data/**
+      - resume-screener-lora-adapter/**
+      - requirements*.txt
+      - .github/workflows/eval.yml
+  workflow_dispatch: {}
+  schedule:
+    - cron: 17 3 * * 1
+concurrency:
+  group: eval-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate-and-eval:
@@ -19,6 +37,13 @@ jobs:
         with:
           python-version: "3.11"
 
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Cache Hugging Face models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-qwen2.5-0.5b-instruct-v1
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
