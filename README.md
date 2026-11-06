@@ -10,7 +10,9 @@ A small open model, fine-tuned with LoRA to return **structured JSON verdicts** 
 
 ### 🌐 [Try the live demo →](https://resume-screener-finetune.onrender.com/)
 
-> **Heads-up:** the demo runs on Render's free tier, so the first request can take 20 to 30 seconds to wake up. The demo also **serves a different model** (Groq-hosted) than the one trained here. See the [Deployment Note](#deployment-note).
+Run the actual fine-tuned adapter yourself (free GPU, about 2 minutes): [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ayush-s-tomar/resume-screener-lora/blob/main/demo_colab.ipynb)
+
+> **Heads-up:** the demo runs on Render's free tier, so the first request can take 20 to 30 seconds to wake up. The demo also **serves a different model** (Groq-hosted) than the one trained here. See the [Deployment Note](#deployment-note), or run the real adapter in the [Colab notebook](https://colab.research.google.com/github/ayush-s-tomar/resume-screener-lora/blob/main/demo_colab.ipynb).
 
 ![Resume Screener demo](assets/Resume%20Screener%20Lora.gif)
 
