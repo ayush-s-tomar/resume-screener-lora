@@ -69,6 +69,7 @@ jobs:
           "
 
       - name: Lint with pylint
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: |
           pylint --jobs=0 inference.py --disable=all --enable=E --exit-zero
 
