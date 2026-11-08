@@ -83,6 +83,8 @@ Telling the baseline the verdict score ranges (measured on the training set only
 
 The last column is a larger prompted model rather than a fine-tuned one: `openai/gpt-oss-20b` on Groq, with the same system prompt, score ranges and inputs as the rubric baseline and no fine-tuning. It reaches 55.2% verdict accuracy and a mean score error of 16.4; the fine-tuned 0.5B adapter still leads on verdict accuracy (88.5% vs 55.2%), and the adapter has the lower mean score error (5.4 vs 16.4 points). The trade-off is different, though: a hosted 20B model costs an API call per resume and needs network access, while the 0.5B adapter runs locally. Because the labels come from the generator's own rubric, the gap measures how well each model learned that rubric, not screening quality in general. Reproduce with `python eval_groq_baseline.py` (needs `GROQ_API_KEY`); raw numbers are in `groq_baseline_results.json`.
 
+With 96 examples, the 95% (Wilson) intervals on verdict accuracy are 11-27% zero-shot, 12-28% with the rubric, 45-65% for gpt-oss-20b and 81-93% fine-tuned; the fine-tuned interval does not overlap any of the others, so the gap is not sampling noise, although the exact values are still imprecise.
+
 ### Sanity check on hand-written resumes
 
 The generator's resumes follow templates, so I also ran six hand-written resumes (the demo's example buttons) through the hosted demo and the local adapter. This is a sanity check on six examples, not an evaluation.
