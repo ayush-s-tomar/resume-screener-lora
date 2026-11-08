@@ -100,6 +100,26 @@ The generator's resumes follow templates, so I also ran six hand-written resumes
 
 Both rank the resumes in a broadly similar order (Backend and AI at the top) and both reject the graphic designer, but the adapter is more conservative: it never returns `strong_match` here and puts two mid-level resumes in `weak_match`. A plausible explanation, not tested, is that it learned the score distribution of the synthetic generator, which hand-written resumes do not follow. Adding varied, human-written resumes to the training data is the obvious next step.
 
+<!-- ns-start -->
+### Name-swap sensitivity
+
+Does the adapter react to who the candidate is? I took 15 held-out resumes (balanced across weak, moderate and strong matches), put a name at the top of each resume text, and compared the adapter's score and verdict with the same resume without a name. The eight names were picked to cover a range of common name origins, a coarse probe rather than a demographic classification. A neutral placeholder ("Candidate A") is the control for the effect of adding any prefix at all.
+
+| Prefix | Mean score shift (95% CI) | Verdict flips |
+|---|---|---|
+| Candidate A (control) | +0.4 (-0.2 to +1.0) | 0/15 |
+| Emily Walsh | +0.7 (-0.2 to +1.6) | 0/15 |
+| Greg Baker | -0.3 (-1.7 to +1.2) | 0/15 |
+| Lakisha Washington | +0.1 (-1.3 to +1.6) | 1/15 |
+| Jamal Robinson | +0.7 (-0.2 to +1.6) | 0/15 |
+| Priya Sharma | +0.4 (-0.2 to +1.0) | 0/15 |
+| Rahul Verma | -0.1 (-1.4 to +1.1) | 1/15 |
+| Mei Chen | +0.0 (-1.7 to +1.7) | 0/15 |
+| Mohammed Hassan | +0.1 (-1.3 to +1.6) | 1/15 |
+
+Across the 8 names the mean absolute score change was 0.9 points (largest single change 10) and 3 of 120 verdicts flipped; the control placeholder moved scores by 0.4 points on average, which is the noise floor for adding any prefix. No name moved scores systematically: every 95% interval includes 0. This is a sensitivity check on 15 resumes and 8 names, not a fairness audit: names are one proxy among many, the sample is small, and the adapter is only evaluated on this synthetic data. Reproduce with `python name_swap_test.py`; raw numbers are in `results/name_swap_v1.json`.
+<!-- ns-end -->
+
 ### Before vs. after
 
 **Prompt:** *Screen this resume for a Backend Engineer position and return a structured verdict. Resume: Bachelor's in CS, 4 years distributed backend experience, skilled in Python, PostgreSQL, Docker, Kubernetes.*
