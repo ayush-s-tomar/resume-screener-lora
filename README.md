@@ -2,6 +2,7 @@
 
 [![Live Demo](https://img.shields.io/badge/demo-render-46e3b7?logo=render&logoColor=white)](https://resume-screener-finetune.onrender.com/)
 [![CI Eval](https://github.com/ayush-s-tomar/resume-screener-lora/actions/workflows/eval.yml/badge.svg)](https://github.com/ayush-s-tomar/resume-screener-lora/actions/workflows/eval.yml)
+[![Tests](https://github.com/ayush-s-tomar/resume-screener-lora/actions/workflows/tests.yml/badge.svg)](https://github.com/ayush-s-tomar/resume-screener-lora/actions/workflows/tests.yml)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](requirements.txt)
 [![LoRA](https://img.shields.io/badge/PEFT-LoRA-ff9a00)](finetune_lora.ipynb)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -100,6 +101,26 @@ The generator's resumes follow templates, so I also ran six hand-written resumes
 
 Both rank the resumes in a broadly similar order (Backend and AI at the top) and both reject the graphic designer, but the adapter is more conservative: it never returns `strong_match` here and puts two mid-level resumes in `weak_match`. A plausible explanation, not tested, is that it learned the score distribution of the synthetic generator, which hand-written resumes do not follow. Adding varied, human-written resumes to the training data is the obvious next step.
 
+<!-- hw-start -->
+### Hand-authored test set (36 resumes)
+
+The generator's resumes follow templates, so I also wrote a separate test set: 36 resumes in 6 roles (two strong, two moderate and two weak matches per role) in three layouts (prose, labelled lines, headed bullets), labelled with the written rubric in [`data/HANDWRITTEN_RUBRIC.md`](data/HANDWRITTEN_RUBRIC.md): core-skill coverage, years against what the role typically needs, and field match. The resumes and labels were drafted with an AI assistant against that rubric and have not been checked by professional recruiters, so this is a development set, not a benchmark. Data: `data/handwritten_eval.jsonl`; reproduce with `python eval_adapter.py --adapter resume-screener-lora-adapter --data data/handwritten_eval.jsonl --out results/handwritten_v1.json`.
+
+| Metric | Adapter v1 |
+|---|---|
+| Verdict accuracy | 44.4% (16/36) |
+| Severe errors (weak vs strong confusions) | 2 of 36 |
+| Pairwise ordering (higher-labelled resume scores higher) | 80.4% |
+
+Rows are the rubric label, columns the adapter's verdict:
+
+| | weak | moderate | strong | invalid |
+|---|---|---|---|---|
+| weak | 11 | 1 | 0 | 0 |
+| moderate | 10 | 2 | 0 | 0 |
+| strong | 2 | 6 | 3 | 1 |
+<!-- hw-end -->
+
 <!-- ns-start -->
 ### Name-swap sensitivity
 
@@ -117,7 +138,7 @@ Does the adapter react to who the candidate is? I took 15 held-out resumes (bala
 | Mei Chen | +0.0 (-1.7 to +1.7) | 0/15 |
 | Mohammed Hassan | +0.1 (-1.3 to +1.6) | 1/15 |
 
-Across the 8 names the mean absolute score change was 0.9 points (largest single change 10) and 3 of 120 verdicts flipped; the control placeholder moved scores by 0.4 points on average, which is the noise floor for adding any prefix. No name moved scores systematically: every 95% interval includes 0. All 3 verdict flips came from one resume whose base score (76, strong match) sits 1.5 points from the strong/moderate boundary: 3 of the 8 names moved it by 8 points, while the control placeholder did not. That makes it a boundary case rather than a pattern, but one resume cannot separate sensitivity to any prefix from sensitivity to particular names. This is a sensitivity check on 15 resumes and 8 names, not a fairness audit: names are one proxy among many, the sample is small, and the adapter is only evaluated on this synthetic data. Reproduce with `python name_swap_test.py`; raw numbers are in `results/name_swap_v1.json`.
+Across the 8 names the mean absolute score change was 0.9 points (largest single change 10) and 3 of 120 verdicts flipped; the control placeholder moved scores by 0.4 points on average, which is the noise floor for adding any prefix. No name moved scores systematically: every 95% interval includes 0. This is a sensitivity check on 15 resumes and 8 names, not a fairness audit: names are one proxy among many, the sample is small, and the adapter is only evaluated on this synthetic data. Reproduce with `python name_swap_test.py`; raw numbers are in `results/name_swap_v1.json`.
 <!-- ns-end -->
 
 ### Before vs. after
@@ -234,7 +255,7 @@ The results above reflect the real fine-tuned model, so **don't judge the fine-t
 
 ## Contributing
 
-Issues and pull requests are welcome. Check the [issues page](https://github.com/ayush-s-tomar/resume-screener-lora/issues), then fork the repo, create a feature branch, and open a PR.
+Issues and pull requests are welcome. Check the [issues page](https://github.com/ayush-s-tomar/resume-screener-lora/issues), then fork the repo, create a feature branch, and open a PR. Run the unit tests first (`pip install pytest httpx groq`, then `pytest`).
 
 ## License
 

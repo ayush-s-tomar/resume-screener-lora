@@ -1,0 +1,17 @@
+.git
+.github
+venv
+test-venv
+merge-venv
+llamacpp-venv
+llama.cpp
+llama-release
+llama-release.zip
+merged-model
+merged_model
+quantized_model
+*.gguf
+__pycache__
+results
+tests
+assets
