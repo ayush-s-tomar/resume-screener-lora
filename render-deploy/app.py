@@ -1,10 +1,15 @@
+import hashlib
 import json
+import logging
 import os
 import re
+import threading
+import time
 import unicodedata
+from collections import OrderedDict, deque
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.responses import HTMLResponse, JSONResponse
 from groq import Groq
 from pydantic import BaseModel, Field
 
@@ -101,12 +106,11 @@ def normalize(data: dict, role: str):
     }
 
 
-@app.post("/score")
-def score_resume(req: ResumeRequest):
+def _score_uncached(role, resume):
+    """Call the hosted model (up to two attempts) and return the normalized verdict."""
     if client is None:
         raise HTTPException(status_code=503, detail="Scoring backend is not configured (GROQ_API_KEY missing).")
-    role = clean_text(req.target_role).strip() or "Software Engineer"
-    prompt = build_prompt(role, clean_text(req.resume_text))
+    prompt = build_prompt(role, resume)
     for attempt in range(2):
         try:
             response = client.chat.completions.create(
@@ -124,6 +128,121 @@ def score_resume(req: ResumeRequest):
             return result
     raise HTTPException(status_code=502, detail="The model did not return a valid verdict. Please try again.")
 
+
+# ---------------------------------------------------------------------------
+# Public-demo guards: response cache, per-visitor rate limit and a daily cap, so one curious
+# visitor (or a bot) cannot use up the shared Groq quota. State is held in memory, so it resets
+# whenever the free Render instance sleeps and wakes. Tune with the DEMO_* environment variables.
+# ---------------------------------------------------------------------------
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
+logger = logging.getLogger("resume_demo")
+
+
+def _env_int(name, default):
+    try:
+        return int(os.environ.get(name, default))
+    except ValueError:
+        return default
+
+
+RATE_LIMIT = _env_int("DEMO_RATE_LIMIT", 8)
+RATE_WINDOW = _env_int("DEMO_RATE_WINDOW_SECONDS", 600)
+DAILY_CAP = _env_int("DEMO_DAILY_CAP", 150)
+CACHE_MAX = 256
+MAX_BODY_BYTES = 64 * 1024
+
+CACHE = OrderedDict()
+RATE = {}
+DAILY = {"day": "", "count": 0}
+LOCK = threading.Lock()
+
+
+@app.middleware("http")
+async def hardening(request: Request, call_next):
+    length = request.headers.get("content-length", "")
+    if length.isdigit() and int(length) > MAX_BODY_BYTES:
+        return JSONResponse({"detail": "Request too large."}, status_code=413)
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("Referrer-Policy", "no-referrer")
+    return response
+
+
+def client_ip(request):
+    ip = request.headers.get("cf-connecting-ip")
+    if not ip:
+        forwarded = request.headers.get("x-forwarded-for", "")
+        ip = forwarded.split(",")[0].strip() if forwarded else ""
+    return ip or (request.client.host if request.client else "unknown")
+
+
+def cache_key(role, resume):
+    return hashlib.sha256((role.lower() + "\n" + resume).encode("utf-8")).hexdigest()
+
+
+def check_limits(ip, now):
+    """Raise HTTP 429 when this visitor or the whole demo is over budget; otherwise record the call."""
+    today = time.strftime("%Y-%m-%d", time.gmtime(now))
+    with LOCK:
+        if DAILY["day"] != today:
+            DAILY["day"], DAILY["count"] = today, 0
+        if DAILY["count"] >= DAILY_CAP:
+            raise HTTPException(
+                status_code=429,
+                detail="The shared demo quota for today is used up and resets at midnight UTC. "
+                "Repeating an earlier screening still works, or run the adapter locally (see the README).",
+            )
+        hits = RATE.setdefault(ip, deque())
+        while hits and now - hits[0] > RATE_WINDOW:
+            hits.popleft()
+        if len(hits) >= RATE_LIMIT:
+            retry = int(RATE_WINDOW - (now - hits[0])) + 1
+            raise HTTPException(
+                status_code=429,
+                detail="You have reached the demo limit of %d new screenings per %d minutes. "
+                "Please try again in %d seconds. Repeating an earlier screening is instant and does not count."
+                % (RATE_LIMIT, max(1, RATE_WINDOW // 60), retry),
+                headers={"Retry-After": str(retry)},
+            )
+        hits.append(now)
+        DAILY["count"] += 1
+        if len(RATE) > 5000:
+            for stale in [k for k, v in RATE.items() if not v or now - v[-1] > RATE_WINDOW]:
+                RATE.pop(stale, None)
+
+
+@app.post("/score")
+def score_resume(req: ResumeRequest, request: Request, response: Response):
+    started = time.time()
+    role = clean_text(req.target_role).strip() or "Software Engineer"
+    resume = clean_text(req.resume_text).strip()
+    if not resume:
+        raise HTTPException(status_code=422, detail="Please paste some resume text.")
+    key = cache_key(role, resume)
+    ip = client_ip(request)
+    visitor = hashlib.sha256(ip.encode("utf-8")).hexdigest()[:8]
+
+    with LOCK:
+        cached = CACHE.get(key)
+        if cached is not None:
+            CACHE.move_to_end(key)
+    if cached is not None:
+        response.headers["X-Cache"] = "hit"
+        logger.info("score visitor=%s cache=hit resume_chars=%d ms=%d", visitor, len(resume), int((time.time() - started) * 1000))
+        return {**cached, "cached": True}
+
+    if client is None:
+        raise HTTPException(status_code=503, detail="Scoring backend is not configured (GROQ_API_KEY missing).")
+    check_limits(ip, started)
+    result = _score_uncached(role, resume)
+    with LOCK:
+        CACHE[key] = result
+        CACHE.move_to_end(key)
+        while len(CACHE) > CACHE_MAX:
+            CACHE.popitem(last=False)
+    response.headers["X-Cache"] = "miss"
+    logger.info("score visitor=%s cache=miss resume_chars=%d ms=%d", visitor, len(resume), int((time.time() - started) * 1000))
+    return {**result, "cached": False}
 
 PAGE = r"""<!DOCTYPE html>
 <html lang="en">

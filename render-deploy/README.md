@@ -29,3 +29,13 @@ GGUF-quantized llama.cpp inference without OOM crashes or timeouts. Routing
 through Groq's hosted API keeps the public demo fast and stable on free
 hosting, at the cost of not literally running the fine-tuned weights in
 production.
+
+## Demo guards
+
+The hosted demo shares one Groq quota, so `app.py` protects it:
+
+- Identical requests are answered from an in-memory cache (the response has `cached: true` and an `X-Cache: hit` header) and cost no quota.
+- Each visitor is limited to 8 new screenings per 10 minutes (`DEMO_RATE_LIMIT`, `DEMO_RATE_WINDOW_SECONDS`), and the whole demo to 150 new screenings per UTC day (`DEMO_DAILY_CAP`). Over the limit, the API answers HTTP 429 with a `Retry-After` header. The defaults are conservative guesses for Groq's free tier; adjust them in Render's environment settings.
+- Request bodies over 64 KB are rejected with HTTP 413, and responses carry `X-Content-Type-Options` and `Referrer-Policy` headers.
+- Logs record timing and cache hits but never the resume text; visitor addresses are logged only as a short hash.
+- Counters and the cache live in memory, so they reset when the free instance sleeps and wakes. They protect against casual overuse, not a determined attacker.
