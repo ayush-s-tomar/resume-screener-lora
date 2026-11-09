@@ -1,0 +1,27 @@
+{
+  "adapter": "resume-screener-lora-adapter",
+  "date": "2026-11-09",
+  "n_examples": 96,
+  "invalid_outputs": 0,
+  "matched": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "exact_set_match": 1.0,
+    "inconsistent_with_resume_rate": 0.0,
+    "generator_inconsistent_with_resume_rate": 0.0,
+    "predicted_skills": 429
+  },
+  "missing": {
+    "precision": 0.928,
+    "recall": 0.89,
+    "f1": 0.909,
+    "exact_set_match": 0.719,
+    "inconsistent_with_resume_rate": 0.043,
+    "generator_inconsistent_with_resume_rate": 0.05,
+    "predicted_skills": 209
+  },
+  "verdict_accuracy": 0.885,
+  "mean_absolute_score_error": 5.39,
+  "note": "inconsistent_with_resume_rate: for matched skills, the share NOT found in the resume text; for missing skills, the share that IS found in it (approximate string match)."
+}
