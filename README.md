@@ -138,7 +138,7 @@ Does the adapter react to who the candidate is? I took 15 held-out resumes (bala
 | Mei Chen | +0.0 (-1.7 to +1.7) | 0/15 |
 | Mohammed Hassan | +0.1 (-1.3 to +1.6) | 1/15 |
 
-Across the 8 names the mean absolute score change was 0.9 points (largest single change 10) and 3 of 120 verdicts flipped; the control placeholder moved scores by 0.4 points on average, which is the noise floor for adding any prefix. No name moved scores systematically: every 95% interval includes 0. This is a sensitivity check on 15 resumes and 8 names, not a fairness audit: names are one proxy among many, the sample is small, and the adapter is only evaluated on this synthetic data. Reproduce with `python name_swap_test.py`; raw numbers are in `results/name_swap_v1.json`.
+Across the 8 names the mean absolute score change was 0.9 points (largest single change 10) and 3 of 120 verdicts flipped; the control placeholder moved scores by 0.4 points on average, which is the noise floor for adding any prefix. No name moved scores systematically: every 95% interval includes 0. All 3 verdict flips came from one resume whose base score (76, strong match) sits 1.5 points from the strong/moderate boundary: 3 of the 8 names moved it by 8 points, while the control placeholder did not. That makes it a boundary case rather than a pattern, but one resume cannot separate sensitivity to any prefix from sensitivity to particular names. This is a sensitivity check on 15 resumes and 8 names, not a fairness audit: names are one proxy among many, the sample is small, and the adapter is only evaluated on this synthetic data. Reproduce with `python name_swap_test.py`; raw numbers are in `results/name_swap_v1.json`.
 <!-- ns-end -->
 
 ### Before vs. after
