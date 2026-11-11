@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-11",
+  "hardware": {
+    "os": "Windows",
+    "logical_cores": 16,
+    "torch_threads": 12
+  },
+  "local": {
+    "load_seconds": 15.9,
+    "latency_seconds": {
+      "n": 12,
+      "median": 11.37,
+      "p90": 13.74,
+      "min": 8.84,
+      "max": 15.67
+    },
+    "tokens_per_second_median": 5.6,
+    "generated_tokens_median": 64,
+    "prompt_tokens_median": 78,
+    "resident_memory_gb": 2.18
+  },
+  "hosted": {
+    "n": 5,
+    "median": 3.38,
+    "p90": 5.47,
+    "min": 2.78,
+    "max": 6.25,
+    "errors": 0
+  },
+  "sizes": {
+    "adapter_mb": 8.3,
+    "base_mb": 953,
+    "gguf_files": {
+      "resume-screener-q4_k_m.gguf": 379
+    }
+  }
+}

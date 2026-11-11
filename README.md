@@ -84,6 +84,23 @@ Telling the baseline the verdict score ranges (measured on the training set only
 
 The last column is a larger prompted model rather than a fine-tuned one: `openai/gpt-oss-20b` on Groq, with the same system prompt, score ranges and inputs as the rubric baseline and no fine-tuning. It reaches 55.2% verdict accuracy and a mean score error of 16.4; the fine-tuned 0.5B adapter still leads on verdict accuracy (88.5% vs 55.2%), and the adapter has the lower mean score error (5.4 vs 16.4 points). The trade-off is different, though: a hosted 20B model costs an API call per resume and needs network access, while the 0.5B adapter runs locally. Because the labels come from the generator's own rubric, the gap measures how well each model learned that rubric, not screening quality in general. Reproduce with `python eval_groq_baseline.py` (needs `GROQ_API_KEY`); raw numbers are in `groq_baseline_results.json`.
 
+<!-- lat-start -->
+### Cost and latency
+
+Accuracy is only half of the trade-off between the adapter and the hosted 20B model, so I measured the rest on one Windows machine (CPU only, 16 logical cores, 12 torch threads). The hosted column is end to end through the live demo, which scores with gpt-oss-20b on Groq, so it includes the network. Accuracy is from the held-out evaluation above.
+
+| | Fine-tuned 0.5B adapter (local) | gpt-oss-20b on Groq (hosted demo) |
+|---|---|---|
+| Verdict accuracy (96 held-out) | 88.5% | 55.2% |
+| Median latency per resume | 11.4 s (p90 13.7 s) | 3.4 s (p90 5.5 s) |
+| Needs network and an API key | no | yes |
+| On disk | 953 MB base + 8.3 MB adapter | none |
+| Memory while running | 2.2 GB resident | none |
+| Quantized GGUF | resume-screener-q4_k_m.gguf: 379 MB | none |
+
+The hosted call was faster per resume than the CPU-only adapter (3.4 s against 11.4 s), so the adapter's case is accuracy on this task, working offline and having no dependency on an API key or rate limits, not speed. A GPU would speed up the local adapter. These are single-machine timings of 12 resumes locally and 5 hosted requests, not a rigorous benchmark. Reproduce with `python benchmark_latency.py`; raw numbers are in `results/latency_v1.json`.
+<!-- lat-end -->
+
 With 96 examples, the 95% (Wilson) intervals on verdict accuracy are 11-27% zero-shot, 12-28% with the rubric, 45-65% for gpt-oss-20b and 81-93% fine-tuned; the fine-tuned interval does not overlap any of the others, so the gap is not sampling noise, although the exact values are still imprecise.
 
 ### Sanity check on hand-written resumes
