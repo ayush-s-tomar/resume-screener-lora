@@ -87,9 +87,9 @@ The last column is a larger prompted model rather than a fine-tuned one: `openai
 <!-- lat-start -->
 ### Cost and latency
 
-Accuracy is only half of the trade-off between the adapter and the hosted 20B model, so I measured the rest on one Windows machine (CPU only, 16 logical cores, 12 torch threads). The hosted column is end to end through the live demo, which scores with gpt-oss-20b on Groq, so it includes the network. Accuracy is from the held-out evaluation above.
+Accuracy is only half of the trade-off between the adapter and the hosted 20B model, so I measured the rest on one Windows machine (CPU only, 16 logical cores, 12 torch threads). The hosted column is end to end through the live demo, which scores with gpt-oss-20b on Groq, so it includes the network. Accuracy is from the held-out evaluation above, which used the baseline script's prompt: the same model, but not the demo's own prompt, which was not evaluated on the held-out set. Latency was measured through the demo.
 
-| | Fine-tuned 0.5B adapter (local) | gpt-oss-20b on Groq (hosted demo) |
+| | Fine-tuned 0.5B adapter (local) | gpt-oss-20b on Groq |
 |---|---|---|
 | Verdict accuracy (96 held-out) | 88.5% | 55.2% |
 | Median latency per resume | 11.4 s (p90 13.7 s) | 3.4 s (p90 5.5 s) |
