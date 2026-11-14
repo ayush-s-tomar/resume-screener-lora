@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resume screening: your judgment</title>
+<style>
+body{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:#0f1020;color:#e8e9f3;margin:0;padding:24px;display:flex;justify-content:center}
+.wrap{max-width:760px;width:100%}
+h1{font-size:22px;margin:0 0 8px}
+p,li{line-height:1.55;color:#c5c7dc}
+.card{background:#17182d;border:1px solid #2a2c4a;border-radius:14px;padding:18px;margin:14px 0}
+pre{white-space:pre-wrap;word-wrap:break-word;font-family:inherit;font-size:15px;line-height:1.55;margin:8px 0 0;color:#e8e9f3}
+input[type=text]{width:100%;padding:10px;border-radius:8px;border:1px solid #3a3d63;background:#0f1020;color:inherit;font-size:16px;box-sizing:border-box}
+button{font-size:16px;padding:12px 16px;border-radius:10px;border:1px solid #3a3d63;background:#23254a;color:#e8e9f3;cursor:pointer}
+button:hover{background:#2d3060}
+button:disabled{opacity:.4;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.row button{flex:1;min-width:150px}
+.strong{border-color:#10b981}
+.moderate{border-color:#f59e0b}
+.weak{border-color:#ef4444}
+.bar{height:8px;background:#23254a;border-radius:6px;overflow:hidden;margin-top:6px}
+.bar div{height:100%;background:#6366f1;width:0}
+.muted{color:#8f92b8;font-size:14px}
+.err{color:#fca5a5;margin-top:8px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <h1>Resume screening: your judgment</h1>
+
+ <div id="start">
+  <div class="card">
+   <p>You will see 36 short, fictional resumes, each written for a target role. For each one, choose how well the candidate fits that role:</p>
+   <ul>
+    <li><b>Strong</b>: you would shortlist this person straight away.</li>
+    <li><b>Moderate</b>: worth a closer look or a screening call.</li>
+    <li><b>Weak</b>: you would not move forward for this role.</li>
+   </ul>
+   <p>There are no trick questions, so go with your judgment. It takes about 15 minutes. Please do not discuss your answers with anyone until everyone has finished. Your answers stay in this browser until you download them at the end.</p>
+   <p class="muted">Your ID (initials or a nickname, not your full name)</p>
+   <input type="text" id="annotator" maxlength="30" autocomplete="off">
+   <div id="err" class="err"></div>
+   <div class="row"><button onclick="start()">Start</button></div>
+  </div>
+ </div>
+
+ <div id="task" class="hidden">
+  <div class="muted" id="progress"></div>
+  <div class="bar"><div id="bar"></div></div>
+  <div class="card">
+   <div class="muted">Target role</div>
+   <div style="font-size:18px;font-weight:600" id="role"></div>
+   <pre id="resume"></pre>
+  </div>
+  <div class="row">
+   <button class="strong" onclick="answer('strong')">Strong fit (1)</button>
+   <button class="moderate" onclick="answer('moderate')">Moderate fit (2)</button>
+   <button class="weak" onclick="answer('weak')">Weak fit (3)</button>
+  </div>
+  <div class="row"><button id="back" onclick="back()">Back (left arrow)</button></div>
+ </div>
+
+ <div id="done" class="hidden">
+  <div class="card">
+   <h1>Thank you</h1>
+   <p>You labelled <b id="count"></b> resumes. Click the button to save your answers as a small file, then send that file to the person who asked you.</p>
+   <div class="row"><button onclick="download()">Download my answers</button></div>
+  </div>
+ </div>
+</div>
+<script>
+var DATA = [{"id": "BE1", "role": "Backend Engineer", "resume": "BACKEND ENGINEER - 5 years\n\nSKILLS\n- Java, Spring Boot, MySQL, REST APIs, Docker, Git, Kafka\n\nEXPERIENCE\n- Built order-management services in Spring Boot that process 1.2M orders a day\n- Designed REST APIs consumed by 6 internal teams and cut average response time by 35 percent with query tuning\n- Containerized services with Docker and ran them behind a CI pipeline\n\nEDUCATION\nB.E. in Computer Engineering"}, {"id": "BE2", "role": "Backend Engineer", "resume": "Backend developer with four years of experience building Python services for logistics software. Works daily with Django, PostgreSQL and Redis, has designed more than 30 REST endpoints, and ships everything in Docker containers. Reduced nightly report generation from 90 minutes to 12 minutes by moving heavy queries to materialized views. B.Sc. in Computer Science."}, {"id": "BE3", "role": "Backend Engineer", "resume": "Backend Developer, 3 years of experience.\nSkills: PHP, MySQL, Linux, Git, jQuery.\nExperience: Maintained a PHP and MySQL booking platform used by 40 hotels. Wrote stored procedures, fixed slow queries and handled production incidents. Has not yet worked with containers or cloud platforms.\nEducation: Diploma in Information Technology."}, {"id": "BE4", "role": "Backend Engineer", "resume": "BACKEND DEVELOPER (1 year)\n\nTECH STACK\nPython | FastAPI | PostgreSQL | REST APIs | Docker | Git\n\nWORK\n- Built and deployed a REST API for a small e-commerce start-up using FastAPI and PostgreSQL\n- Wrote integration tests and added Docker support for local development\n\nEDUCATION\nB.Tech in Computer Science"}, {"id": "BE5", "role": "Backend Engineer", "resume": "Junior Web Developer, 2 years of experience.\nSkills: HTML, CSS, JavaScript, WordPress, Photoshop.\nExperience: Built and customized WordPress sites for small businesses. Edited themes, installed plugins and handled basic hosting setup. Little exposure to server-side code beyond small PHP snippets.\nEducation: BCA."}, {"id": "BE6", "role": "Backend Engineer", "resume": "Marketing manager with seven years of experience running email and paid social campaigns for consumer brands. Strong in analytics dashboards, budgeting and agency management. Recently completed an online introductory course on Python. MBA in Marketing."}, {"id": "FE1", "role": "Frontend Engineer", "resume": "Frontend Engineer, 4 years of experience.\nSkills: TypeScript, React, Redux, HTML, CSS, Jest, Cypress, REST and GraphQL APIs, Git.\nExperience: Led the migration of a 200-page admin portal from AngularJS to React and TypeScript. Improved Lighthouse performance from 54 to 91 and raised unit test coverage from 20 percent to 80 percent.\nEducation: B.Tech in Information Technology."}, {"id": "FE2", "role": "Frontend Engineer", "resume": "Frontend developer with three years of experience building single-page apps in Vue and JavaScript. Comfortable with HTML, CSS, REST API integration and Git workflows, and has written component tests with Vitest. Built a booking widget used by 25,000 visitors a month and fixed accessibility issues that raised the accessibility audit score from 71 to 96."}, {"id": "FE3", "role": "Frontend Engineer", "resume": "FRONTEND DEVELOPER - 2 years\n\nSKILLS\n- JavaScript, jQuery, HTML, CSS, Bootstrap, Git\n\nEXPERIENCE\n- Built responsive landing pages and form workflows for a digital agency\n- Converted design mockups into pixel-accurate pages across 15 client sites\n- Has not yet worked with a modern component framework\n\nEDUCATION\nBSc in Computer Applications"}, {"id": "FE4", "role": "Frontend Engineer", "resume": "Recent graduate and self-taught frontend developer. Built four projects with React, TypeScript, HTML and CSS, including a weather dashboard that consumes a public REST API and a task manager with Jest unit tests. All code is on GitHub and managed with Git. Completed a three-month frontend internship at a local software company. B.Tech in Computer Science."}, {"id": "FE5", "role": "Frontend Engineer", "resume": "Java Developer, 6 years of experience.\nSkills: Java, Spring, Oracle, SOAP services, Maven, Git.\nExperience: Developed back-office banking services and batch jobs. Wrote small JavaScript snippets for internal admin screens maintained by the UI team.\nEducation: B.E. in Computer Science."}, {"id": "FE6", "role": "Frontend Engineer", "resume": "HR RECRUITER - 5 years\n\nSKILLS\n- Candidate sourcing, interview scheduling, onboarding, payroll coordination\n- Excel, Google Sheets\n\nEXPERIENCE\n- Hired 120 engineers and designers across three offices\n- Ran a campus recruiting program with 15 universities\n\nEDUCATION\nMBA in Human Resources"}, {"id": "AI1", "role": "AI Engineer", "resume": "AI ENGINEER - 3 years\n\nSKILLS\n- Python, PyTorch, Hugging Face Transformers, LangChain, Qdrant, FastAPI, Docker\n\nEXPERIENCE\n- Built a retrieval-augmented question-answering system over 120,000 support articles with hybrid search and reranking\n- Fine-tuned an open-source LLM with LoRA and cut hallucinated answers by 38 percent on an internal evaluation set\n- Wrote an automated evaluation harness that scores answer quality on every release\n\nEDUCATION\nM.Tech in Artificial Intelligence"}, {"id": "AI2", "role": "AI Engineer", "resume": "Machine learning engineer with four years of experience shipping NLP models to production. Trains and fine-tunes transformer models in Python and PyTorch, builds embedding search with FAISS, and serves models behind FastAPI services on Kubernetes. Set up offline benchmarks and A/B tests that tracked a 12 percent lift in search relevance. M.Sc. in Computer Science."}, {"id": "AI3", "role": "AI Engineer", "resume": "Data Scientist, 3 years of experience.\nSkills: Python, scikit-learn, pandas, XGBoost, SQL, Tableau.\nExperience: Built churn and demand forecasting models for a retail chain and reported accuracy improvements to business teams. Deployed one model as a Flask service. Defined evaluation metrics and ran A/B tests for each model. Interested in moving into applied AI roles.\nEducation: M.Sc. in Statistics."}, {"id": "AI4", "role": "AI Engineer", "resume": "AI ENGINEER (1 year)\n\nSKILLS\nPython, PyTorch, Hugging Face, LangChain, Chroma vector store, FastAPI, Docker\n\nPROJECTS AND WORK\n- Built a document chatbot with LangChain and a Chroma vector store that answers questions from PDF files, with an evaluation on 50 hand-made test questions\n- Fine-tuned a small transformer classifier in PyTorch for ticket routing and deployed it with FastAPI\n\nEDUCATION\nB.Tech in Computer Science and Engineering"}, {"id": "AI5", "role": "AI Engineer", "resume": "Full stack web developer with five years of experience building e-commerce sites in JavaScript and Node.js. Has used a third-party chatbot widget on a client site and follows AI news, but has not trained or evaluated machine learning models. B.Sc. in Information Technology."}, {"id": "AI6", "role": "AI Engineer", "resume": "Senior Accountant, 8 years of experience.\nSkills: Financial reporting, budgeting, Excel, SAP, tax compliance.\nExperience: Prepared monthly closing reports and led a team of four junior accountants. Completed an online course on machine learning fundamentals using Python notebooks.\nEducation: M.Com."}, {"id": "DE1", "role": "Data Engineer", "resume": "Data Engineer, 5 years of experience.\nSkills: Python, SQL, Apache Spark, Airflow, dbt, Snowflake, AWS S3, Kafka.\nExperience: Owns 60 Airflow pipelines that load 2 TB a day into Snowflake. Rewrote a slow nightly ETL job in PySpark and cut its runtime from 5 hours to 50 minutes. Added data quality checks that catch broken feeds before dashboards refresh.\nEducation: B.Tech in Computer Science."}, {"id": "DE2", "role": "Data Engineer", "resume": "Data engineer with three years of experience building batch pipelines for a fintech company. Writes Python and SQL daily, schedules jobs with Airflow, models data in BigQuery, and processes event streams with Spark. Reduced pipeline failures by 60 percent by adding retries, alerts and idempotent loads. B.E. in Information Technology."}, {"id": "DE3", "role": "Data Engineer", "resume": "BI DEVELOPER - 4 years\n\nSKILLS\n- SQL, SQL Server, SSIS, Power BI, Excel, some Python scripting\n\nEXPERIENCE\n- Built and scheduled ETL packages in SSIS that load sales data into a SQL Server warehouse every night\n- Created 25 Power BI reports for finance and operations teams\n- Wrote Python scripts to clean flat files before loading\n\nEDUCATION\nBCA"}, {"id": "DE4", "role": "Data Engineer", "resume": "Junior data engineer with one year of experience. Built an ETL pipeline in Python and SQL that loads CSV exports into PostgreSQL, scheduled it with Airflow, and processed a 5 GB dataset with PySpark during a university project. Has explored dbt and Snowflake through tutorials. B.Tech in Data Science."}, {"id": "DE5", "role": "Data Engineer", "resume": "Frontend Developer, 6 years of experience.\nSkills: JavaScript, React, CSS, Jest, Storybook.\nExperience: Built design systems and dashboards used by 2 million customers. Occasionally wrote SQL queries to debug reporting issues with the data team.\nEducation: B.Tech in Computer Science."}, {"id": "DE6", "role": "Data Engineer", "resume": "SALES EXECUTIVE - 4 years\n\nSKILLS\n- Negotiation, CRM tools, account management, presentations\n\nEXPERIENCE\n- Closed deals worth 1.8 million dollars a year in enterprise software sales\n- Built weekly sales reports in Excel and learned basic SQL to pull CRM data\n\nEDUCATION\nBBA"}, {"id": "DO1", "role": "DevOps Engineer", "resume": "DEVOPS ENGINEER - 6 years\n\nSKILLS\n- Linux, Docker, Kubernetes, Helm, Jenkins, GitHub Actions, Terraform, Ansible, AWS, Prometheus, Grafana\n\nEXPERIENCE\n- Moved 40 services from virtual machines to Kubernetes on AWS and cut infrastructure cost by 28 percent\n- Built Terraform modules and Jenkins pipelines that reduced deployment time from 3 hours to 12 minutes\n- Set up Prometheus and Grafana alerting that cut mean time to detect incidents by half\n\nEDUCATION\nB.E. in Electronics and Communication"}, {"id": "DO2", "role": "DevOps Engineer", "resume": "Site reliability and DevOps engineer with four years of experience running Linux workloads on Google Cloud. Containers are built with Docker and deployed to Kubernetes through GitLab CI, infrastructure is defined in Terraform, and on-call incidents are tracked with Grafana dashboards. Improved deployment frequency from weekly to daily. B.Tech in Computer Science."}, {"id": "DO3", "role": "DevOps Engineer", "resume": "Systems Administrator, 4 years of experience.\nSkills: Linux, Bash, Nagios, Jenkins, Docker, VMware.\nExperience: Administered 60 Linux servers and automated patching with Bash. Set up Jenkins jobs for nightly builds and containerized two internal tools with Docker. Has limited exposure to public cloud platforms.\nEducation: B.Sc. in Information Technology."}, {"id": "DO4", "role": "DevOps Engineer", "resume": "DEVOPS ENGINEER (1 year)\n\nSKILLS\nLinux, Docker, Kubernetes, GitHub Actions, Terraform, AWS\n\nEXPERIENCE\n- Containerized a Django application with Docker and deployed it to a Kubernetes cluster on AWS for a start-up\n- Wrote GitHub Actions workflows for build, test and deploy\n- Provisioned the staging environment with Terraform\n\nEDUCATION\nB.Tech in Computer Science"}, {"id": "DO5", "role": "DevOps Engineer", "resume": "Backend developer with five years of experience building Java microservices. Has used Docker locally for development and follows the runbooks written by the DevOps team when releases go out, but does not manage pipelines, clusters or cloud infrastructure. B.E. in Computer Science."}, {"id": "DO6", "role": "DevOps Engineer", "resume": "Operations Manager, 9 years of experience.\nSkills: Vendor management, budgeting, warehouse operations, safety compliance, Excel.\nExperience: Ran a distribution center with 120 staff and reduced delivery delays by 22 percent. Led a switch to a new inventory system.\nEducation: MBA in Operations."}, {"id": "SD1", "role": "Software Developer", "resume": "Software developer with two years of experience at a product company. Writes Java and Python, applies data structures and algorithms to keep services fast, and works with SQL databases and Git every day. Writes JUnit and pytest tests for new features and completed an internship project that built a payments reconciliation tool before joining full time. B.Tech in Computer Science."}, {"id": "SD2", "role": "Software Developer", "resume": "SOFTWARE DEVELOPER - 3 years\n\nSKILLS\n- C#, .NET, SQL Server, Git, NUnit, algorithms\n\nEXPERIENCE\n- Built inventory and billing modules for a retail ERP used in 90 stores\n- Improved a report query from 40 seconds to 3 seconds by redesigning indexes\n- Wrote unit tests that raised module coverage to 85 percent and mentored two interns\n\nEDUCATION\nB.E. in Computer Science"}, {"id": "SD3", "role": "Software Developer", "resume": "Junior Developer, 2 years of experience.\nSkills: Java, MySQL, HTML, Eclipse.\nExperience: Fixed bugs and added small features to a Java web application for a university admissions office. Wrote SQL queries for reports and basic unit tests with JUnit. Completed a final-year project on a hostel management system. Code was shared through a network drive rather than a version control system.\nEducation: B.Sc. in Computer Science."}, {"id": "SD4", "role": "Software Developer", "resume": "Final-year computer science student seeking a software developer role. Comfortable in Python and Java, solved 300 problems on data structures and algorithms platforms, and uses Git and SQL in all coursework. Built a hospital appointment system as a team project, wrote unit tests for its core modules and completed a two-month internship fixing bugs in a Java service."}, {"id": "SD5", "role": "Software Developer", "resume": "IT SUPPORT TECHNICIAN - 3 years\n\nSKILLS\n- Windows administration, hardware repair, ticketing systems, basic networking\n\nEXPERIENCE\n- Resolved 40 support tickets a week and set up laptops for new employees\n- Wrote small PowerShell and Python scripts to automate password resets\n\nEDUCATION\nDiploma in Computer Hardware and Networking"}, {"id": "SD6", "role": "Software Developer", "resume": "Civil engineer with six years of experience supervising residential construction projects. Manages site schedules, budgets and subcontractors, and uses AutoCAD and Excel for planning. Recently began a weekend course on programming. B.E. in Civil Engineering."}];
+var LABELS = {strong: "strong_match", moderate: "moderate_match", weak: "weak_match"};
+var state = {id: "", order: [], answers: {}, pos: 0};
+function $(i) { return document.getElementById(i); }
+function show(name) {
+  ["start", "task", "done"].forEach(function (n) { $(n).className = (n === name) ? "" : "hidden"; });
+}
+function hash(s) {
+  var h = 2166136261;
+  for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    var t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function storageKey() { return "resume_labels_" + state.id; }
+function save() {
+  try { localStorage.setItem(storageKey(), JSON.stringify({answers: state.answers, pos: state.pos})); } catch (e) {}
+}
+function load() {
+  try {
+    var raw = localStorage.getItem(storageKey());
+    if (raw) { var d = JSON.parse(raw); state.answers = d.answers || {}; state.pos = d.pos || 0; }
+  } catch (e) {}
+}
+function start() {
+  var id = $("annotator").value.trim();
+  if (!id) { $("err").textContent = "Please enter an ID first."; return; }
+  state.id = id.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 30);
+  var rnd = mulberry32(hash(state.id));
+  var order = DATA.map(function (_, i) { return i; });
+  for (var i = order.length - 1; i > 0; i--) {
+    var j = Math.floor(rnd() * (i + 1));
+    var t = order[i]; order[i] = order[j]; order[j] = t;
+  }
+  state.order = order; state.answers = {}; state.pos = 0;
+  load();
+  render();
+}
+function render() {
+  if (state.pos >= state.order.length) { finish(); return; }
+  show("task");
+  var item = DATA[state.order[state.pos]];
+  $("progress").textContent = (state.pos + 1) + " of " + state.order.length;
+  $("bar").style.width = (100 * state.pos / state.order.length) + "%";
+  $("role").textContent = item.role;
+  $("resume").textContent = item.resume;
+  $("back").disabled = state.pos === 0;
+}
+function answer(kind) {
+  if (state.pos >= state.order.length) return;
+  var item = DATA[state.order[state.pos]];
+  state.answers[item.id] = LABELS[kind];
+  state.pos += 1;
+  save();
+  render();
+}
+function back() { if (state.pos > 0) { state.pos -= 1; save(); render(); } }
+function finish() {
+  show("done"); save();
+  $("count").textContent = Object.keys(state.answers).length + " of " + DATA.length;
+}
+function download() {
+  var out = {annotator: state.id, date: new Date().toISOString().slice(0, 10), n_items: DATA.length, labels: state.answers};
+  var blob = new Blob([JSON.stringify(out, null, 2)], {type: "application/json"});
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "labels_" + state.id + ".json";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+document.addEventListener("keydown", function (e) {
+  if ($("task").className !== "") return;
+  if (e.key === "1") answer("strong");
+  else if (e.key === "2") answer("moderate");
+  else if (e.key === "3") answer("weak");
+  else if (e.key === "ArrowLeft") back();
+});
+</script>
+</body>
+</html>

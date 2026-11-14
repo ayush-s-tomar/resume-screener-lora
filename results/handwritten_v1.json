@@ -1,0 +1,286 @@
+{
+  "n_examples": 36,
+  "valid_json_rate": 0.972,
+  "verdict_accuracy": 0.444,
+  "verdict_correct": 16,
+  "severe_errors": 2,
+  "mean_absolute_score_error": null,
+  "pairwise_ordering": 0.804,
+  "confusion": {
+    "weak_match": {
+      "weak_match": 11,
+      "moderate_match": 1,
+      "strong_match": 0,
+      "invalid": 0
+    },
+    "moderate_match": {
+      "weak_match": 10,
+      "moderate_match": 2,
+      "strong_match": 0,
+      "invalid": 0
+    },
+    "strong_match": {
+      "weak_match": 2,
+      "moderate_match": 6,
+      "strong_match": 3,
+      "invalid": 1
+    }
+  },
+  "adapter": "resume-screener-lora-adapter",
+  "data": "data/handwritten_eval.jsonl",
+  "date": "2026-11-09",
+  "per_example": [
+    {
+      "id": "BE1",
+      "role": "Backend Engineer",
+      "label": "strong_match",
+      "pred": "weak_match",
+      "pred_score": 48.0
+    },
+    {
+      "id": "BE2",
+      "role": "Backend Engineer",
+      "label": "strong_match",
+      "pred": "moderate_match",
+      "pred_score": 68.0
+    },
+    {
+      "id": "BE3",
+      "role": "Backend Engineer",
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 52.0
+    },
+    {
+      "id": "BE4",
+      "role": "Backend Engineer",
+      "label": "moderate_match",
+      "pred": "weak_match",
+      "pred_score": 24.0
+    },
+    {
+      "id": "BE5",
+      "role": "Backend Engineer",
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 34.0
+    },
+    {
+      "id": "BE6",
+      "role": "Backend Engineer",
+      "label": "weak_match",
+      "pred": "moderate_match",
+      "pred_score": 56.0
+    },
+    {
+      "id": "FE1",
+      "role": "Frontend Engineer",
+      "label": "strong_match",
+      "pred": "moderate_match",
+      "pred_score": 67.0
+    },
+    {
+      "id": "FE2",
+      "role": "Frontend Engineer",
+      "label": "strong_match",
+      "pred": "strong_match",
+      "pred_score": 84.0
+    },
+    {
+      "id": "FE3",
+      "role": "Frontend Engineer",
+      "label": "moderate_match",
+      "pred": "weak_match",
+      "pred_score": 34.0
+    },
+    {
+      "id": "FE4",
+      "role": "Frontend Engineer",
+      "label": "moderate_match",
+      "pred": "weak_match",
+      "pred_score": 42.0
+    },
+    {
+      "id": "FE5",
+      "role": "Frontend Engineer",
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 42.0
+    },
+    {
+      "id": "FE6",
+      "role": "Frontend Engineer",
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 34.0
+    },
+    {
+      "id": "AI1",
+      "role": "AI Engineer",
+      "label": "strong_match",
+      "pred": "weak_match",
+      "pred_score": 46.0
+    },
+    {
+      "id": "AI2",
+      "role": "AI Engineer",
+      "label": "strong_match",
+      "pred": "moderate_match",
+      "pred_score": 58.0
+    },
+    {
+      "id": "AI3",
+      "role": "AI Engineer",
+      "label": "moderate_match",
+      "pred": "weak_match",
+      "pred_score": 46.0
+    },
+    {
+      "id": "AI4",
+      "role": "AI Engineer",
+      "label": "moderate_match",
+      "pred": "weak_match",
+      "pred_score": 46.0
+    },
+    {
+      "id": "AI5",
+      "role": "AI Engineer",
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 48.0
+    },
+    {
+      "id": "AI6",
+      "role": "AI Engineer",
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 36.0
+    },
+    {
+      "id": "DE1",
+      "role": "Data Engineer",
+      "label": "strong_match",
+      "pred": "moderate_match",
+      "pred_score": 74.0
+    },
+    {
+      "id": "DE2",
+      "role": "Data Engineer",
+      "label": "strong_match",
+      "pred": "strong_match",
+      "pred_score": 74.0
+    },
+    {
+      "id": "DE3",
+      "role": "Data Engineer",
+      "label": "moderate_match",
+      "pred": "weak_match",
+      "pred_score": 36.0
+    },
+    {
+      "id": "DE4",
+      "role": "Data Engineer",
+      "label": "moderate_match",
+      "pred": "weak_match",
+      "pred_score": 48.0
+    },
+    {
+      "id": "DE5",
+      "role": "Data Engineer",
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 48.0
+    },
+    {
+      "id": "DE6",
+      "role": "Data Engineer",
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 20.0
+    },
+    {
+      "id": "DO1",
+      "role": "DevOps Engineer",
+      "label": "strong_match",
+      "pred": "strong_match",
+      "pred_score": 75.0
+    },
+    {
+      "id": "DO2",
+      "role": "DevOps Engineer",
+      "label": "strong_match",
+      "pred": "moderate_match",
+      "pred_score": 58.0
+    },
+    {
+      "id": "DO3",
+      "role": "DevOps Engineer",
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 52.0
+    },
+    {
+      "id": "DO4",
+      "role": "DevOps Engineer",
+      "label": "moderate_match",
+      "pred": "weak_match",
+      "pred_score": 26.0
+    },
+    {
+      "id": "DO5",
+      "role": "DevOps Engineer",
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 28.0
+    },
+    {
+      "id": "DO6",
+      "role": "DevOps Engineer",
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 46.0
+    },
+    {
+      "id": "SD1",
+      "role": "Software Developer",
+      "label": "strong_match",
+      "pred": "moderate_match",
+      "pred_score": 52.0
+    },
+    {
+      "id": "SD2",
+      "role": "Software Developer",
+      "label": "strong_match",
+      "pred": "invalid",
+      "pred_score": null
+    },
+    {
+      "id": "SD3",
+      "role": "Software Developer",
+      "label": "moderate_match",
+      "pred": "weak_match",
+      "pred_score": 34.0
+    },
+    {
+      "id": "SD4",
+      "role": "Software Developer",
+      "label": "moderate_match",
+      "pred": "weak_match",
+      "pred_score": 48.0
+    },
+    {
+      "id": "SD5",
+      "role": "Software Developer",
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 28.0
+    },
+    {
+      "id": "SD6",
+      "role": "Software Developer",
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 46.0
+    }
+  ]
+}

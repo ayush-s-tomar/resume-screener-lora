@@ -12,3 +12,4 @@ venv/
 *-venv/
 merged-model/
 merged_model/
+labels/
