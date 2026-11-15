@@ -1,0 +1,706 @@
+{
+  "n_examples": 96,
+  "valid_json_rate": 1.0,
+  "verdict_accuracy": 0.885,
+  "verdict_correct": 85,
+  "severe_errors": 0,
+  "mean_absolute_score_error": 5.39,
+  "pairwise_ordering": 0.962,
+  "confusion": {
+    "weak_match": {
+      "weak_match": 35,
+      "moderate_match": 3,
+      "strong_match": 0,
+      "invalid": 0
+    },
+    "moderate_match": {
+      "weak_match": 3,
+      "moderate_match": 35,
+      "strong_match": 3,
+      "invalid": 0
+    },
+    "strong_match": {
+      "weak_match": 0,
+      "moderate_match": 2,
+      "strong_match": 15,
+      "invalid": 0
+    }
+  },
+  "adapter": "resume-screener-lora-adapter",
+  "data": "data/eval.jsonl",
+  "date": "2026-11-09",
+  "per_example": [
+    {
+      "id": 0,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 34.0
+    },
+    {
+      "id": 1,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 58.0
+    },
+    {
+      "id": 2,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 40.0
+    },
+    {
+      "id": 3,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 40.0
+    },
+    {
+      "id": 4,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 58.0
+    },
+    {
+      "id": 5,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 68.0
+    },
+    {
+      "id": 6,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 54.0
+    },
+    {
+      "id": 7,
+      "role": null,
+      "label": "strong_match",
+      "pred": "strong_match",
+      "pred_score": 76.0
+    },
+    {
+      "id": 8,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 54.0
+    },
+    {
+      "id": 9,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 68.0
+    },
+    {
+      "id": 10,
+      "role": null,
+      "label": "strong_match",
+      "pred": "strong_match",
+      "pred_score": 86.0
+    },
+    {
+      "id": 11,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 26.0
+    },
+    {
+      "id": 12,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 56.0
+    },
+    {
+      "id": 13,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 68.0
+    },
+    {
+      "id": 14,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 38.0
+    },
+    {
+      "id": 15,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 28.0
+    },
+    {
+      "id": 16,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 28.0
+    },
+    {
+      "id": 17,
+      "role": null,
+      "label": "strong_match",
+      "pred": "moderate_match",
+      "pred_score": 74.0
+    },
+    {
+      "id": 18,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 48.0
+    },
+    {
+      "id": 19,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 56.0
+    },
+    {
+      "id": 20,
+      "role": null,
+      "label": "strong_match",
+      "pred": "strong_match",
+      "pred_score": 76.0
+    },
+    {
+      "id": 21,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 36.0
+    },
+    {
+      "id": 22,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 28.0
+    },
+    {
+      "id": 23,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 40.0
+    },
+    {
+      "id": 24,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 36.0
+    },
+    {
+      "id": 25,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 42.0
+    },
+    {
+      "id": 26,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 58.0
+    },
+    {
+      "id": 27,
+      "role": null,
+      "label": "strong_match",
+      "pred": "strong_match",
+      "pred_score": 86.0
+    },
+    {
+      "id": 28,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "weak_match",
+      "pred_score": 42.0
+    },
+    {
+      "id": 29,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "weak_match",
+      "pred_score": 46.0
+    },
+    {
+      "id": 30,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "strong_match",
+      "pred_score": 86.0
+    },
+    {
+      "id": 31,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 40.0
+    },
+    {
+      "id": 32,
+      "role": null,
+      "label": "strong_match",
+      "pred": "strong_match",
+      "pred_score": 76.0
+    },
+    {
+      "id": 33,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 46.0
+    },
+    {
+      "id": 34,
+      "role": null,
+      "label": "strong_match",
+      "pred": "strong_match",
+      "pred_score": 74.0
+    },
+    {
+      "id": 35,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 34.0
+    },
+    {
+      "id": 36,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 28.0
+    },
+    {
+      "id": 37,
+      "role": null,
+      "label": "weak_match",
+      "pred": "moderate_match",
+      "pred_score": 54.0
+    },
+    {
+      "id": 38,
+      "role": null,
+      "label": "strong_match",
+      "pred": "strong_match",
+      "pred_score": 82.0
+    },
+    {
+      "id": 39,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 46.0
+    },
+    {
+      "id": 40,
+      "role": null,
+      "label": "strong_match",
+      "pred": "strong_match",
+      "pred_score": 86.0
+    },
+    {
+      "id": 41,
+      "role": null,
+      "label": "strong_match",
+      "pred": "moderate_match",
+      "pred_score": 72.0
+    },
+    {
+      "id": 42,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 56.0
+    },
+    {
+      "id": 43,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 68.0
+    },
+    {
+      "id": 44,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 68.0
+    },
+    {
+      "id": 45,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 36.0
+    },
+    {
+      "id": 46,
+      "role": null,
+      "label": "strong_match",
+      "pred": "strong_match",
+      "pred_score": 84.0
+    },
+    {
+      "id": 47,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 36.0
+    },
+    {
+      "id": 48,
+      "role": null,
+      "label": "strong_match",
+      "pred": "strong_match",
+      "pred_score": 76.0
+    },
+    {
+      "id": 49,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 68.0
+    },
+    {
+      "id": 50,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 68.0
+    },
+    {
+      "id": 51,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 36.0
+    },
+    {
+      "id": 52,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 68.0
+    },
+    {
+      "id": 53,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 42.0
+    },
+    {
+      "id": 54,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 36.0
+    },
+    {
+      "id": 55,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 68.0
+    },
+    {
+      "id": 56,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 64.0
+    },
+    {
+      "id": 57,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "strong_match",
+      "pred_score": 86.0
+    },
+    {
+      "id": 58,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 36.0
+    },
+    {
+      "id": 59,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 56.0
+    },
+    {
+      "id": 60,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 56.0
+    },
+    {
+      "id": 61,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 36.0
+    },
+    {
+      "id": 62,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 54.0
+    },
+    {
+      "id": 63,
+      "role": null,
+      "label": "strong_match",
+      "pred": "strong_match",
+      "pred_score": 76.0
+    },
+    {
+      "id": 64,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 20.0
+    },
+    {
+      "id": 65,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 48.0
+    },
+    {
+      "id": 66,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 72.0
+    },
+    {
+      "id": 67,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 64.0
+    },
+    {
+      "id": 68,
+      "role": null,
+      "label": "strong_match",
+      "pred": "strong_match",
+      "pred_score": 86.0
+    },
+    {
+      "id": 69,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 68.0
+    },
+    {
+      "id": 70,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 48.0
+    },
+    {
+      "id": 71,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "weak_match",
+      "pred_score": 46.0
+    },
+    {
+      "id": 72,
+      "role": null,
+      "label": "strong_match",
+      "pred": "strong_match",
+      "pred_score": 76.0
+    },
+    {
+      "id": 73,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 68.0
+    },
+    {
+      "id": 74,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 28.0
+    },
+    {
+      "id": 75,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 46.0
+    },
+    {
+      "id": 76,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 56.0
+    },
+    {
+      "id": 77,
+      "role": null,
+      "label": "weak_match",
+      "pred": "moderate_match",
+      "pred_score": 56.0
+    },
+    {
+      "id": 78,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 68.0
+    },
+    {
+      "id": 79,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 64.0
+    },
+    {
+      "id": 80,
+      "role": null,
+      "label": "strong_match",
+      "pred": "strong_match",
+      "pred_score": 84.0
+    },
+    {
+      "id": 81,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 68.0
+    },
+    {
+      "id": 82,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 34.0
+    },
+    {
+      "id": 83,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 68.0
+    },
+    {
+      "id": 84,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 28.0
+    },
+    {
+      "id": 85,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "strong_match",
+      "pred_score": 86.0
+    },
+    {
+      "id": 86,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 46.0
+    },
+    {
+      "id": 87,
+      "role": null,
+      "label": "strong_match",
+      "pred": "strong_match",
+      "pred_score": 100.0
+    },
+    {
+      "id": 88,
+      "role": null,
+      "label": "weak_match",
+      "pred": "moderate_match",
+      "pred_score": 68.0
+    },
+    {
+      "id": 89,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 68.0
+    },
+    {
+      "id": 90,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 74.0
+    },
+    {
+      "id": 91,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 68.0
+    },
+    {
+      "id": 92,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 50.0
+    },
+    {
+      "id": 93,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 36.0
+    },
+    {
+      "id": 94,
+      "role": null,
+      "label": "moderate_match",
+      "pred": "moderate_match",
+      "pred_score": 54.0
+    },
+    {
+      "id": 95,
+      "role": null,
+      "label": "weak_match",
+      "pred": "weak_match",
+      "pred_score": 46.0
+    }
+  ]
+}

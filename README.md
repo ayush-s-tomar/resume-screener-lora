@@ -121,13 +121,13 @@ Both rank the resumes in a broadly similar order (Backend and AI at the top) and
 <!-- hw-start -->
 ### Hand-authored test set (36 resumes)
 
-The generator's resumes follow templates, so I also wrote a separate test set: 36 resumes in 6 roles (two strong, two moderate and two weak matches per role) in three layouts (prose, labelled lines, headed bullets), labelled with the written rubric in [`data/HANDWRITTEN_RUBRIC.md`](data/HANDWRITTEN_RUBRIC.md): core-skill coverage, years against what the role typically needs, and field match. The resumes and labels were drafted with an AI assistant against that rubric and have not been checked by professional recruiters, so this is a development set, not a benchmark. Data: `data/handwritten_eval.jsonl`; reproduce with `python eval_adapter.py --adapter resume-screener-lora-adapter --data data/handwritten_eval.jsonl --out results/handwritten_v1.json`.
+The generator's resumes follow templates, so I also wrote a separate set of 36 (6 roles, two strong, two moderate and two weak matches per role) in three layouts (prose, labelled lines and headed bullets) with different wording, and labelled them against a written rubric ([`data/HANDWRITTEN_RUBRIC.md`](data/HANDWRITTEN_RUBRIC.md)): core-skill coverage, years against what the role typically needs, and field match. The resumes and labels were drafted with an AI assistant and have not been checked by humans, so this is a development set, not a benchmark. Reproduce with `python eval_adapter.py --adapter resume-screener-lora-adapter --data data/handwritten_eval.jsonl --out results/handwritten_v1.json`.
 
 | Metric | Adapter v1 |
 |---|---|
 | Verdict accuracy | 44.4% (16/36) |
 | Severe errors (weak vs strong confusions) | 2 of 36 |
-| Pairwise ordering (higher-labelled resume scores higher) | 80.4% |
+| Pairwise ordering | 80.4% |
 
 Rows are the rubric label, columns the adapter's verdict:
 
@@ -136,6 +136,8 @@ Rows are the rubric label, columns the adapter's verdict:
 | weak | 11 | 1 | 0 | 0 |
 | moderate | 10 | 2 | 0 | 0 |
 | strong | 2 | 6 | 3 | 1 |
+
+Accuracy falls from 88.5% on the held-out set to 44.4% here. The adapter is much more conservative on these resumes: it returned a weak match for 23 of 36 (the rubric has 12) and a strong match only 3 times, all of them correct. Its scores still put the higher-labelled resume above the lower-labelled one in 80.4% of pairs, so the score carries signal even where the verdict thresholds do not transfer. 1 of 36 outputs were not valid JSON (the held-out set had none). This could come from the different writing style and wording, from my rubric differing from the generator's rule, or both; labels from independent human annotators would help separate them.
 <!-- hw-end -->
 
 <!-- ns-start -->
