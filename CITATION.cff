@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this project, please cite it as below."
+type: software
+title: "resume-screener-lora: a LoRA fine-tuned Qwen2.5-0.5B resume screener with an honest evaluation"
+authors:
+  - family-names: "Tomar"
+    given-names: "Ayush Singh"
+repository-code: "https://github.com/ayush-s-tomar/resume-screener-lora"
+url: "https://resume-screener-finetune.onrender.com/"
+license: MIT
+abstract: "A LoRA adapter for Qwen2.5-0.5B that returns a structured JSON verdict for a resume and a target role, evaluated against zero-shot and prompted baselines on 96 held-out synthetic examples. The repository documents its limits, including synthetic labels and a weak result on hand-written resumes."
+keywords:
+  - lora
+  - peft
+  - qwen2.5
+  - resume-screening
+  - evaluation
+  - fine-tuning
