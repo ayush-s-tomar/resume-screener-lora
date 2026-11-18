@@ -140,6 +140,10 @@ Rows are the rubric label, columns the adapter's verdict:
 Accuracy falls from 88.5% on the held-out set to 44.4% here. The adapter is much more conservative on these resumes: it returned a weak match for 23 of 36 (the rubric has 12) and a strong match only 3 times, all of them correct. Its scores still put the higher-labelled resume above the lower-labelled one in 80.4% of pairs, so the score carries signal even where the verdict thresholds do not transfer. 1 of 36 outputs were not valid JSON (the held-out set had none). This could come from the different writing style and wording, from my rubric differing from the generator's rule, or both; labels from independent human annotators would help separate them.
 <!-- hw-end -->
 
+<!-- ea-start -->
+**Error analysis.** Of the 11 held-out errors, 8 sit within 6 score points of a verdict boundary, although only 35.4% of all held-out examples do. On the hand-authored set 18 of the 19 wrong verdicts with a valid output are under-predictions (the adapter rated the resume lower than the rubric) and 1 is an over-prediction. Re-fitting the two score thresholds on the 35 scored resumes raises accuracy from 42.9% to 60.0% in-sample but to only 31.4% under leave-one-out validation, so recalibration alone would not be a trustworthy fix. Details and caveats: [`docs/ERROR_ANALYSIS.md`](docs/ERROR_ANALYSIS.md); reproduce with `python error_analysis.py`.
+<!-- ea-end -->
+
 <!-- ns-start -->
 ### Name-swap sensitivity
 

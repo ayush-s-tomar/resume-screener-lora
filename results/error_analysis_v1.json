@@ -1,0 +1,55 @@
+{
+  "date": "2026-11-18",
+  "heldout": {
+    "n": 96,
+    "errors": 11,
+    "accuracy": 0.8854166666666666,
+    "near_boundary_all": 34,
+    "near_boundary_errors": 8,
+    "two_band_errors": 0
+  },
+  "handwritten": {
+    "n": 36,
+    "accuracy": 0.4444444444444444,
+    "invalid": 1,
+    "under_predictions": 18,
+    "over_predictions": 1,
+    "off_by_two": 2,
+    "confusion": {
+      "weak_match": {
+        "weak_match": 11,
+        "moderate_match": 1,
+        "strong_match": 0,
+        "invalid": 0
+      },
+      "moderate_match": {
+        "weak_match": 10,
+        "moderate_match": 2,
+        "strong_match": 0,
+        "invalid": 0
+      },
+      "strong_match": {
+        "weak_match": 2,
+        "moderate_match": 6,
+        "strong_match": 3,
+        "invalid": 1
+      }
+    },
+    "by_role": {
+      "Backend Engineer": 0.3333333333333333,
+      "Frontend Engineer": 0.5,
+      "AI Engineer": 0.3333333333333333,
+      "Data Engineer": 0.5,
+      "DevOps Engineer": 0.6666666666666666,
+      "Software Developer": 0.3333333333333333
+    }
+  },
+  "thresholds": {
+    "n": 35,
+    "default": 0.42857142857142855,
+    "in_sample": 0.6,
+    "loocv": 0.3142857142857143,
+    "t1": 50.0,
+    "t2": 57.0
+  }
+}
