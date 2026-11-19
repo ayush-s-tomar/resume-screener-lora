@@ -144,6 +144,12 @@ Accuracy falls from 88.5% on the held-out set to 44.4% here. The adapter is much
 **Error analysis.** Of the 11 held-out errors, 8 sit within 6 score points of a verdict boundary, although only 35.4% of all held-out examples do. On the hand-authored set 18 of the 19 wrong verdicts with a valid output are under-predictions (the adapter rated the resume lower than the rubric) and 1 is an over-prediction. Re-fitting the two score thresholds on the 35 scored resumes raises accuracy from 42.9% to 60.0% in-sample but to only 31.4% under leave-one-out validation, so recalibration alone would not be a trustworthy fix. Details and caveats: [`docs/ERROR_ANALYSIS.md`](docs/ERROR_ANALYSIS.md); reproduce with `python error_analysis.py`.
 <!-- ea-end -->
 
+<!-- sp-start -->
+**Borderline flag.** Verdicts close to a threshold are unstable, so a verdict can be marked borderline when the adapter's own score is within 6 points of a verdict boundary. Chosen on the held-out set by a rule fixed in advance, that margin flags 27 of 96 resumes and the flagged resumes hold 5 of the 11 errors; accuracy on the unflagged resumes is 91.3% (82.3% to 96.0%) against 88.5% overall. On the other side, on the hand-authored set, which was not used to choose the margin, the same margin flags 17 of 36 resumes and those hold only 9 of 20 errors, no better than random flagging of the same share (47.2%), so the flag does not transfer to those resumes. The margin rests on 11 held-out errors, so treat it as a starting point. Details: [`docs/SELECTIVE_PREDICTION.md`](docs/SELECTIVE_PREDICTION.md); reproduce with `python selective_prediction.py`.
+
+![Accuracy on unflagged resumes against coverage](assets/selective_prediction.svg)
+<!-- sp-end -->
+
 <!-- ns-start -->
 ### Name-swap sensitivity
 
