@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- Borderline flag: `borderline.py` and `inference.py --margin` mark verdicts whose score is close to a verdict boundary (the default margin comes from `results/selective_v1.json`), with unit tests.
+
 ## [1.1] - 2026-11-18
 
 ### Highlights

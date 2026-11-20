@@ -1,27 +1,28 @@
 """
 Standalone inference script for the LoRA fine-tuned resume screener.
-Loads the Qwen2.5-0.5B-Instruct base model plus the LoRA adapter and returns a
-structured JSON verdict.
+Loads Qwen2.5-0.5B-Instruct base model + LoRA adapter, returns a structured JSON verdict.
+
+When a borderline margin is enabled (see borderline.py), the verdict also says whether its score sits close to a verdict
+boundary, so that an application can send those resumes to a human instead of deciding them automatically.
 
 Usage:
-    python inference.py                                   # built-in example
-    python inference.py --role "Backend Engineer" --resume path/to/resume.txt
-    python inference.py --role "Backend Engineer" --resume "raw resume text ..."
+    python inference.py                                   # built-in example resume
+    python inference.py --role "Data Engineer" --resume-file resume.txt
+    python inference.py --margin 3                        # flag scores within 3 points of a boundary
+    python inference.py --margin 0                        # never flag
 """
 
 import argparse
 import json
-import os
-import re
+from pathlib import Path
 
-import torch
-from peft import PeftModel
-from transformers import AutoModelForCausalLM, AutoTokenizer
+try:
+    import borderline
+except ImportError:  # inference.py was copied on its own, without borderline.py
+    borderline = None
 
 BASE_MODEL = "Qwen/Qwen2.5-0.5B-Instruct"
-ADAPTER_PATH = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "resume-screener-lora-adapter"
-)
+ADAPTER_PATH = "./resume-screener-lora-adapter"
 
 EXAMPLE_RESUME = (
     "Bachelor's degree in Computer Science. 4 years of experience building "
@@ -30,77 +31,61 @@ EXAMPLE_RESUME = (
 
 
 def load_model():
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from peft import PeftModel
+
     tokenizer = AutoTokenizer.from_pretrained(ADAPTER_PATH)
-    if torch.cuda.is_available():
-        base_model = AutoModelForCausalLM.from_pretrained(
-            BASE_MODEL, torch_dtype="auto", device_map="auto"
-        )
-    else:
-        base_model = AutoModelForCausalLM.from_pretrained(
-            BASE_MODEL, torch_dtype=torch.float32, device_map="cpu"
-        )
+    try:
+        base_model = AutoModelForCausalLM.from_pretrained(BASE_MODEL, dtype="auto", device_map="auto")
+    except (TypeError, ValueError):  # older transformers versions only know torch_dtype
+        base_model = AutoModelForCausalLM.from_pretrained(BASE_MODEL, torch_dtype="auto", device_map="auto")
     model = PeftModel.from_pretrained(base_model, ADAPTER_PATH)
     model.eval()
     return model, tokenizer
 
 
-def parse_verdict(raw: str) -> dict:
-    match = re.search(r"\{.*\}", raw, re.DOTALL)
-    if match:
-        try:
-            return json.loads(match.group(0))
-        except json.JSONDecodeError:
-            pass
-    return {"raw_output": raw, "parse_error": True}
+def screen_resume(model, tokenizer, resume_text: str, role: str, margin=None) -> dict:
+    """Score one resume.
 
-
-def screen_resume(model, tokenizer, resume_text: str, role: str) -> dict:
-    prompt = (
-        f"Screen this resume for a {role} position and return a structured verdict."
-        f"\n\nResume: {resume_text}"
-    )
+    margin is the borderline margin in score points: None uses the default from borderline.py (off if the analysis
+    recommended none), 0 turns the flag off.
+    """
+    prompt = f"Screen this resume for a {role} position and return a structured verdict.\n\nResume: {resume_text}"
     messages = [{"role": "user", "content": prompt}]
-    # return_dict=True gives input_ids + attention_mask on every transformers version
     inputs = tokenizer.apply_chat_template(
-        messages,
-        tokenize=True,
-        add_generation_prompt=True,
-        return_tensors="pt",
-        return_dict=True,
-    ).to(model.device)
-
-    with torch.no_grad():
-        output = model.generate(**inputs, max_new_tokens=200, do_sample=False)
-
-    raw = tokenizer.decode(
-        output[0][inputs["input_ids"].shape[1]:], skip_special_tokens=True
+        messages, tokenize=True, add_generation_prompt=True, return_tensors="pt"
     )
-    return parse_verdict(raw)
+    input_ids = (inputs["input_ids"] if hasattr(inputs, "keys") else inputs).to(model.device)
+
+    output = model.generate(input_ids, max_new_tokens=150, do_sample=False)
+    raw = tokenizer.decode(output[0][input_ids.shape[1]:], skip_special_tokens=True)
+
+    try:
+        verdict = json.loads(raw)
+        if not isinstance(verdict, dict):
+            raise ValueError("the output is not a JSON object")
+    except ValueError:
+        verdict = {"raw_output": raw, "parse_error": True}
+    return borderline.annotate(verdict, margin) if borderline else verdict
 
 
-def read_resume(value: str) -> str:
-    """--resume may be a path to a text file or the raw resume text itself."""
-    if os.path.isfile(value):
-        with open(value, encoding="utf-8") as f:
-            return f.read().strip()
-    return value.strip()
+def main(argv=None):
+    ap = argparse.ArgumentParser(description="Screen a resume with the LoRA adapter")
+    ap.add_argument("--role", default="Backend Engineer", help="target role (default: Backend Engineer)")
+    src = ap.add_mutually_exclusive_group()
+    src.add_argument("--resume", help="resume text")
+    src.add_argument("--resume-file", help="path to a UTF-8 text file containing the resume")
+    ap.add_argument("--margin", type=float, default=None,
+                    help="borderline margin in score points (default: from results/selective_v1.json; 0 turns the flag off)")
+    args = ap.parse_args(argv)
 
+    if args.resume_file:
+        resume = Path(args.resume_file).read_text(encoding="utf-8-sig")
+    else:
+        resume = args.resume or EXAMPLE_RESUME
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Screen a resume with the LoRA fine-tuned model."
-    )
-    parser.add_argument("--role", default="Backend Engineer", help="Target role")
-    parser.add_argument(
-        "--resume",
-        default=None,
-        help="Path to a resume text file, or the raw resume text. Omit to use a built-in example.",
-    )
-    args = parser.parse_args()
-
-    resume = read_resume(args.resume) if args.resume else EXAMPLE_RESUME
     model, tokenizer = load_model()
-    verdict = screen_resume(model, tokenizer, resume, args.role)
+    verdict = screen_resume(model, tokenizer, resume, role=args.role, margin=args.margin)
     print(json.dumps(verdict, indent=2))
 
 

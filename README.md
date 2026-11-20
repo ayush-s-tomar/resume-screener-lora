@@ -150,6 +150,10 @@ Accuracy falls from 88.5% on the held-out set to 44.4% here. The adapter is much
 ![Accuracy on unflagged resumes against coverage](assets/selective_prediction.svg)
 <!-- sp-end -->
 
+<!-- bf-start -->
+**Using the flag.** `inference.py` adds `borderline`, `borderline_reason` and `distance_to_boundary` to its output when a margin is enabled, and flags any output that is not valid JSON. The default margin is 6 points, the one chosen in the analysis above; `--margin 0` turns the flag off. Example: `python inference.py --role "Data Engineer" --resume-file resume.txt --margin 3`. The hosted demo does not show the flag yet.
+<!-- bf-end -->
+
 <!-- ns-start -->
 ### Name-swap sensitivity
 
