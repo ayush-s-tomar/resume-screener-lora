@@ -14,12 +14,18 @@ Usage:
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 try:
     import borderline
 except ImportError:  # inference.py was copied on its own, without borderline.py
     borderline = None
+
+try:
+    import resume_parser
+except ImportError:  # inference.py was copied on its own, without resume_parser.py
+    resume_parser = None
 
 BASE_MODEL = "Qwen/Qwen2.5-0.5B-Instruct"
 ADAPTER_PATH = "./resume-screener-lora-adapter"
@@ -74,15 +80,27 @@ def main(argv=None):
     ap.add_argument("--role", default="Backend Engineer", help="target role (default: Backend Engineer)")
     src = ap.add_mutually_exclusive_group()
     src.add_argument("--resume", help="resume text")
-    src.add_argument("--resume-file", help="path to a UTF-8 text file containing the resume")
+    src.add_argument("--resume-file", help="path to a resume file (.pdf, .docx, .txt or .md)")
     ap.add_argument("--margin", type=float, default=None,
                     help="borderline margin in score points (default: from results/selective_v1.json; 0 turns the flag off)")
+    ap.add_argument("--redact", action="store_true", help="mask emails, links, phone numbers and ID numbers before scoring")
     args = ap.parse_args(argv)
 
     if args.resume_file:
-        resume = Path(args.resume_file).read_text(encoding="utf-8-sig")
+        if resume_parser is None:
+            resume = Path(args.resume_file).read_text(encoding="utf-8-sig")
+        else:
+            try:
+                resume = resume_parser.extract_text(args.resume_file)
+            except resume_parser.ResumeParseError as e:
+                raise SystemExit("Error: %s" % e)
     else:
         resume = args.resume or EXAMPLE_RESUME
+    if args.redact:
+        if resume_parser is None:
+            raise SystemExit("--redact needs resume_parser.py next to inference.py")
+        resume, counts = resume_parser.redact_pii(resume)
+        print("Masked: " + (", ".join("%s %d" % (k, v) for k, v in counts.items()) or "nothing found"), file=sys.stderr)
 
     model, tokenizer = load_model()
     verdict = screen_resume(model, tokenizer, resume, role=args.role, margin=args.margin)

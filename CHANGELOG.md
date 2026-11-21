@@ -6,6 +6,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
+- Resume file support: `resume_parser.py` extracts text from PDF, DOCX and text files and masks emails, links, phone numbers and ID numbers (`inference.py --resume-file resume.pdf --redact`), with unit tests.
 - Borderline flag: `borderline.py` and `inference.py --margin` mark verdicts whose score is close to a verdict boundary (the default margin comes from `results/selective_v1.json`), with unit tests.
 
 ## [1.1] - 2026-11-18

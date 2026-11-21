@@ -154,6 +154,10 @@ Accuracy falls from 88.5% on the held-out set to 44.4% here. The adapter is much
 **Using the flag.** `inference.py` adds `borderline`, `borderline_reason` and `distance_to_boundary` to its output when a margin is enabled, and flags any output that is not valid JSON. The default margin is 6 points, the one chosen in the analysis above; `--margin 0` turns the flag off. Example: `python inference.py --role "Data Engineer" --resume-file resume.txt --margin 3`. The hosted demo does not show the flag yet.
 <!-- bf-end -->
 
+<!-- rp-start -->
+**Resume files and privacy.** `resume_parser.py` extracts text from PDF, DOCX and plain-text resumes (up to 5 MB; scanned PDFs without a text layer are rejected, because OCR is not supported) and can mask emails, links, phone numbers and ID numbers before scoring: `python inference.py --resume-file resume.pdf --redact`. It does not mask names or street addresses unless you pass the names to mask (`python resume_parser.py resume.pdf --redact --name "Your Name"`), so it reduces what leaves your machine but is not an anonymisation guarantee.
+<!-- rp-end -->
+
 <!-- ns-start -->
 ### Name-swap sensitivity
 
