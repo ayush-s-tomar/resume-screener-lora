@@ -6,6 +6,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
+- Demo: PDF, DOCX and text upload, an option to mask emails, links, phone numbers and ID numbers before scoring, a borderline badge and a Privacy panel (`render-deploy/app.py`, with tests).
 - Resume file support: `resume_parser.py` extracts text from PDF, DOCX and text files and masks emails, links, phone numbers and ID numbers (`inference.py --resume-file resume.pdf --redact`), with unit tests.
 - Borderline flag: `borderline.py` and `inference.py --margin` mark verdicts whose score is close to a verdict boundary (the default margin comes from `results/selective_v1.json`), with unit tests.
 

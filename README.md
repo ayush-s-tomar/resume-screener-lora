@@ -158,6 +158,10 @@ Accuracy falls from 88.5% on the held-out set to 44.4% here. The adapter is much
 **Resume files and privacy.** `resume_parser.py` extracts text from PDF, DOCX and plain-text resumes (up to 5 MB; scanned PDFs without a text layer are rejected, because OCR is not supported) and can mask emails, links, phone numbers and ID numbers before scoring: `python inference.py --resume-file resume.pdf --redact`. It does not mask names or street addresses unless you pass the names to mask (`python resume_parser.py resume.pdf --redact --name "Your Name"`), so it reduces what leaves your machine but is not an anonymisation guarantee.
 <!-- rp-end -->
 
+<!-- dm-start -->
+**Demo features.** The hosted demo reads PDF, DOCX and text files (up to 3 MB; files are processed in memory and not stored), can mask emails, links, phone numbers and ID numbers before scoring (names and addresses are not masked), shows a **borderline** badge when the score is within 6 points of a verdict boundary (the margin comes from the analysis above, which measured the local adapter; the hosted model is not validated against it, and the badge says so), and has a Privacy panel that says what it keeps. The text is still sent to Groq to be scored, so use fictional text.
+<!-- dm-end -->
+
 <!-- ns-start -->
 ### Name-swap sensitivity
 

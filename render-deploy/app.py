@@ -9,9 +9,15 @@ import unicodedata
 from collections import OrderedDict, deque
 
 from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse, JSONResponse
 from groq import Groq
 from pydantic import BaseModel, Field
+
+try:
+    import resume_parser
+except ImportError:  # the module was not deployed next to app.py: the demo still works, upload and masking are unavailable
+    resume_parser = None
 
 app = FastAPI()
 
@@ -31,6 +37,7 @@ RUBRIC = """- strong_match: ats_score 75-100
 class ResumeRequest(BaseModel):
     resume_text: str = Field(min_length=1, max_length=12000)
     target_role: str = Field(default="Software Engineer", max_length=100)
+    redact: bool = False
 
 
 def clean_text(text: str) -> str:
@@ -145,14 +152,30 @@ def _env_int(name, default):
         return default
 
 
+def _env_float(name, default):
+    try:
+        return float(os.environ.get(name, default))
+    except ValueError:
+        return float(default)
+
+
 RATE_LIMIT = _env_int("DEMO_RATE_LIMIT", 8)
 RATE_WINDOW = _env_int("DEMO_RATE_WINDOW_SECONDS", 600)
 DAILY_CAP = _env_int("DEMO_DAILY_CAP", 150)
 CACHE_MAX = 256
 MAX_BODY_BYTES = 64 * 1024
+MAX_UPLOAD_BYTES = 3 * 1024 * 1024
+MAX_RESUME_CHARS = 12000
+EXTRACT_LIMIT = _env_int("DEMO_EXTRACT_LIMIT", 20)
+# Verdict boundaries as in the training data (weak up to 48, moderate 50 to 74, strong 75 and above).
+BOUNDARIES = (49.0, 74.5)
+# Borderline margin in score points. The default comes from the selective-prediction analysis (docs/SELECTIVE_PREDICTION.md),
+# which measured the local adapter, not this hosted model, so the page says so. 0 switches the badge off.
+BORDERLINE_MARGIN = _env_float("DEMO_BORDERLINE_MARGIN", 6.0)
 
 CACHE = OrderedDict()
 RATE = {}
+EXTRACT_RATE = {}
 DAILY = {"day": "", "count": 0}
 LOCK = threading.Lock()
 
@@ -160,7 +183,8 @@ LOCK = threading.Lock()
 @app.middleware("http")
 async def hardening(request: Request, call_next):
     length = request.headers.get("content-length", "")
-    if length.isdigit() and int(length) > MAX_BODY_BYTES:
+    limit = MAX_UPLOAD_BYTES if request.url.path == "/extract" else MAX_BODY_BYTES
+    if length.isdigit() and int(length) > limit:
         return JSONResponse({"detail": "Request too large."}, status_code=413)
     response = await call_next(request)
     response.headers.setdefault("X-Content-Type-Options", "nosniff")
@@ -211,6 +235,80 @@ def check_limits(ip, now):
                 RATE.pop(stale, None)
 
 
+def check_extract_limit(ip, now):
+    """Raise HTTP 429 when this visitor has uploaded too many files recently (separate from the scoring limit)."""
+    with LOCK:
+        hits = EXTRACT_RATE.setdefault(ip, deque())
+        while hits and now - hits[0] > RATE_WINDOW:
+            hits.popleft()
+        if len(hits) >= EXTRACT_LIMIT:
+            retry = int(RATE_WINDOW - (now - hits[0])) + 1
+            raise HTTPException(
+                status_code=429,
+                detail="You have reached the demo limit of %d file uploads per %d minutes. "
+                "Please try again in %d seconds, or paste the text instead." % (EXTRACT_LIMIT, max(1, RATE_WINDOW // 60), retry),
+                headers={"Retry-After": str(retry)},
+            )
+        hits.append(now)
+        if len(EXTRACT_RATE) > 5000:
+            for stale in [k for k, v in EXTRACT_RATE.items() if not v or now - v[-1] > RATE_WINDOW]:
+                EXTRACT_RATE.pop(stale, None)
+
+
+def borderline_info(result):
+    """Is this score close to a verdict boundary? None when the flag is switched off (DEMO_BORDERLINE_MARGIN=0)."""
+    if BORDERLINE_MARGIN <= 0:
+        return None
+    score = result["verdict_json"]["ats_score"]
+    distance = min(abs(score - b) for b in BOUNDARIES)
+    return {"is_borderline": distance < BORDERLINE_MARGIN, "distance": round(distance, 1), "margin": BORDERLINE_MARGIN}
+
+
+def build_response(result, cached, masked):
+    body = {**result, "cached": cached}
+    info = borderline_info(result)
+    if info is not None:
+        body["borderline"] = info
+    if masked is not None:
+        body["masked"] = masked
+    return body
+
+
+async def read_limited(request, limit):
+    chunks, total = [], 0
+    async for chunk in request.stream():
+        total += len(chunk)
+        if total > limit:
+            raise HTTPException(status_code=413, detail="Request too large.")
+        chunks.append(chunk)
+    return b"".join(chunks)
+
+
+@app.post("/extract")
+async def extract_resume_text(request: Request, filename: str = ""):
+    """Turn an uploaded PDF, DOCX or text resume into plain text. Files are read in memory and never stored."""
+    started = time.time()
+    if resume_parser is None:
+        raise HTTPException(status_code=503, detail="File upload is not available on this deployment.")
+    ip = client_ip(request)
+    visitor = hashlib.sha256(ip.encode("utf-8")).hexdigest()[:8]
+    check_extract_limit(ip, started)
+    data = await read_limited(request, MAX_UPLOAD_BYTES)
+    name = (filename or "")[:200]
+    try:
+        text = await run_in_threadpool(resume_parser.extract_text, data, name, MAX_UPLOAD_BYTES)
+    except resume_parser.ResumeParseError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.info("extract visitor=%s failed=%s", visitor, type(exc).__name__)
+        raise HTTPException(status_code=422, detail="Could not read the file.") from exc
+    truncated = len(text) > MAX_RESUME_CHARS
+    if truncated:
+        text = text[:MAX_RESUME_CHARS]
+    logger.info("extract visitor=%s ext=%s bytes=%d chars=%d ms=%d", visitor, (os.path.splitext(name)[1].lower() or "none")[:8], len(data), len(text), int((time.time() - started) * 1000))
+    return {"text": text, "chars": len(text), "truncated": truncated}
+
+
 @app.post("/score")
 def score_resume(req: ResumeRequest, request: Request, response: Response):
     started = time.time()
@@ -218,6 +316,11 @@ def score_resume(req: ResumeRequest, request: Request, response: Response):
     resume = clean_text(req.resume_text).strip()
     if not resume:
         raise HTTPException(status_code=422, detail="Please paste some resume text.")
+    masked = None
+    if req.redact:
+        if resume_parser is None:
+            raise HTTPException(status_code=503, detail="Masking is not available on this deployment.")
+        resume, masked = resume_parser.redact_pii(resume)
     key = cache_key(role, resume)
     ip = client_ip(request)
     visitor = hashlib.sha256(ip.encode("utf-8")).hexdigest()[:8]
@@ -229,7 +332,7 @@ def score_resume(req: ResumeRequest, request: Request, response: Response):
     if cached is not None:
         response.headers["X-Cache"] = "hit"
         logger.info("score visitor=%s cache=hit resume_chars=%d ms=%d", visitor, len(resume), int((time.time() - started) * 1000))
-        return {**cached, "cached": True}
+        return build_response(cached, True, masked)
 
     if client is None:
         raise HTTPException(status_code=503, detail="Scoring backend is not configured (GROQ_API_KEY missing).")
@@ -242,7 +345,7 @@ def score_resume(req: ResumeRequest, request: Request, response: Response):
             CACHE.popitem(last=False)
     response.headers["X-Cache"] = "miss"
     logger.info("score visitor=%s cache=miss resume_chars=%d ms=%d", visitor, len(resume), int((time.time() - started) * 1000))
-    return {**result, "cached": False}
+    return build_response(result, False, masked)
 
 PAGE = r"""<!DOCTYPE html>
 <html lang="en">
@@ -375,6 +478,11 @@ PAGE = r"""<!DOCTYPE html>
     @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     footer { text-align: center; font-size: 12px; color: #4b5563; margin-top: 8px; }
+    label.check { font-size: 13px; font-weight: 400; color: #9ca3af; margin: 12px 0 6px; }
+    label.check input { width: auto; accent-color: #6366f1; }
+    .upload-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .bnote { color: #fcd34d; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: 10px; padding: 10px 14px; font-size: 13px; line-height: 1.6; margin: -6px 0 18px; }
+    .fineprint { color: #6b7280; font-size: 12.5px; line-height: 1.6; margin-top: 6px; }
     @media (max-width: 600px) {
         body { padding: 20px 12px; }
         .panel { padding: 20px; }
@@ -412,6 +520,13 @@ PAGE = r"""<!DOCTYPE html>
         </div>
     </details>
 
+    <details class="panel" id="privacy">
+        <summary>Privacy</summary>
+        <div class="how-body">
+            Your text is sent to Groq&rsquo;s API to be scored, so Groq processes it under its own terms; please do not submit real personal data you would not share with a third party. This demo does not store resumes or uploaded files: files are read in memory and discarded. The server keeps only a temporary in-memory cache of scoring results (keyed by a hash of the role and text, without the text), rate counters keyed by IP address, and short log lines (a shortened hash of the visitor&rsquo;s address, the text length and timings). The cache and counters reset whenever the server restarts, and the hosting provider may keep its own request logs. The mask option replaces emails, links, phone numbers and ID numbers (Aadhaar, PAN and US SSN formats) before scoring; it does not mask names or addresses and is not an anonymisation guarantee. This is a research demo and must not be used for real hiring decisions.
+        </div>
+    </details>
+
     <div class="panel">
         <div class="examples">
             <span class="lbl">Try an example:</span>
@@ -428,7 +543,14 @@ PAGE = r"""<!DOCTYPE html>
         </div>
         <div class="field">
             <label for="resume">&#128196; Resume text</label>
+            <div class="upload-row">
+                <input type="file" id="file" accept=".pdf,.docx,.txt,.md" hidden>
+                <button class="ghost" id="uploadBtn" type="button" onclick="pickFile()">Upload a PDF, DOCX or text file</button>
+                <span class="meta" id="fileinfo">or paste the text below (up to 12,000 characters)</span>
+            </div>
             <textarea id="resume" placeholder="Paste resume text here..." maxlength="12000"></textarea>
+            <label class="check" for="mask"><input type="checkbox" id="mask" checked> Mask emails, links, phone numbers and ID numbers before scoring</label>
+            <p class="fineprint">Names and addresses are not masked. The text is sent to Groq&rsquo;s API to be scored; please use fictional or non-sensitive text (see Privacy above).</p>
         </div>
         <button id="btn" type="button" onclick="scoreResume()">Screen resume &rarr;</button>
         <p class="hint" id="hint">Pick a sample resume above (all fictional) or paste your own, then press Screen resume (Ctrl+Enter also works).</p>
@@ -438,15 +560,18 @@ PAGE = r"""<!DOCTYPE html>
             <div class="score-row">
                 <div class="score"><span id="scoreNum">0</span><span class="of">/ 100</span></div>
                 <span id="verdict" class="verdict"></span>
+                <span id="borderline" class="verdict v-mid" hidden>Borderline</span>
                 <span id="years" class="meta"></span>
             </div>
             <div class="bar"><div id="barFill" class="bar-fill"></div></div>
+            <p id="bnote" class="bnote" hidden></p>
             <div class="cols">
                 <div><h3 class="sec">Matched skills</h3><div id="matched" class="chips"></div></div>
                 <div><h3 class="sec">Missing skills</h3><div id="missing" class="chips"></div></div>
             </div>
             <h3 class="sec">Rationale <span class="tag">demo only</span></h3>
             <p id="rationale"></p>
+            <p id="maskinfo" class="meta" hidden></p>
             <details class="rawbox">
                 <summary>Raw JSON (the model&rsquo;s output schema)</summary>
                 <pre id="raw"></pre>
@@ -580,6 +705,19 @@ function render(data) {
     fillChips('missing', v.missing_skills, 'gap');
     $('rationale').textContent = data.rationale || 'No rationale returned.';
     $('raw').textContent = JSON.stringify(v, null, 2);
+    const b = data.borderline;
+    const isB = !!(b && b.is_borderline);
+    $('borderline').hidden = !isB;
+    const note = $('bnote');
+    note.hidden = !isB;
+    if (isB) {
+        note.textContent = 'Borderline: this score is ' + b.distance.toFixed(1) + ' points from the nearest verdict boundary (margin ' + b.margin + '), so a small change in the text or the model could flip the verdict. Review it manually. The margin was measured on the local adapter; this hosted model has not been validated against it.';
+    }
+    const mk = data.masked;
+    const parts = mk ? Object.keys(mk).map((k) => mk[k] + ' ' + k.replace('_', ' ')) : [];
+    const mi = $('maskinfo');
+    mi.hidden = !mk;
+    mi.textContent = mk ? ('Masked before scoring: ' + (parts.join(', ') || 'nothing found') + '.') : '';
 }
 
 async function scoreResume() {
@@ -601,7 +739,7 @@ async function scoreResume() {
         const res = await fetch('/score', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ resume_text: text, target_role: role })
+            body: JSON.stringify({ resume_text: text, target_role: role, redact: $('mask').checked })
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
@@ -617,6 +755,42 @@ async function scoreResume() {
         btn.textContent = 'Screen resume \u2192';
     }
 }
+
+const MAX_UPLOAD = 3 * 1024 * 1024;
+
+function pickFile() { $('file').click(); }
+
+async function handleFile(file) {
+    if (!file) return;
+    if (file.size > MAX_UPLOAD) {
+        setMsg('error', 'That file is larger than 3 MB.');
+        $('file').value = '';
+        return;
+    }
+    $('uploadBtn').disabled = true;
+    setMsg('loading', ' Reading ' + file.name + '...');
+    try {
+        const res = await fetch('/extract?filename=' + encodeURIComponent(file.name), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/octet-stream' },
+            body: file
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            throw new Error(typeof data.detail === 'string' ? data.detail : 'Could not read the file (' + res.status + ').');
+        }
+        $('resume').value = data.text;
+        $('fileinfo').textContent = file.name + ': ' + data.chars + ' characters' + (data.truncated ? ' (shortened to the demo limit)' : '') + '. Check the text before scoring.';
+        setMsg('', '');
+    } catch (e) {
+        setMsg('error', e.message || 'Could not read the file.');
+    } finally {
+        $('uploadBtn').disabled = false;
+        $('file').value = '';
+    }
+}
+
+$('file').addEventListener('change', (e) => handleFile(e.target.files[0]));
 
 async function copyRaw() {
     const b = $('copyBtn');
