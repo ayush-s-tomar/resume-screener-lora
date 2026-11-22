@@ -1,6 +1,6 @@
 # Flagging borderline verdicts
 
-Computed by `selective_prediction.py` on 2026-11-19 from the saved result files, with no model run.
+Computed by `selective_prediction.py` on 2026-11-23 from the saved result files, with no model run.
 
 ## Idea
 

@@ -194,6 +194,7 @@ def main():
     def pts(c):
         return [(r["coverage"], r["acc_kept"], r["margin"]) for r in c if r["acc_kept"] is not None]
 
+    (root / "assets").mkdir(exist_ok=True)
     svg_chart(root / "assets" / "selective_prediction.svg",
               [{"label": "Held-out (%d synthetic examples)" % n_ho, "color": "#1f77b4", "pts": pts(c_ho)},
                {"label": "Hand-authored (%d resumes)" % n_ha, "color": "#d62728", "pts": pts(c_ha)}], rec)
