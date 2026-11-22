@@ -1,5 +1,9 @@
 # Resume Screener: LoRA Fine-Tuned Qwen2.5-0.5B
 
+<!-- ru-banner-start -->
+> **Research artifact, not a hiring tool.** The labels are synthetic, accuracy falls from 88.5% on the held-out set to 44.4% on hand-written resumes, and no bias audit has been done. Read [Responsible use](docs/RESPONSIBLE_USE.md) before using any part of it on real candidates.
+<!-- ru-banner-end -->
+
 [![Live Demo](https://img.shields.io/badge/demo-render-46e3b7?logo=render&logoColor=white)](https://resume-screener-finetune.onrender.com/)
 [![CI Eval](https://github.com/ayush-s-tomar/resume-screener-lora/actions/workflows/eval.yml/badge.svg)](https://github.com/ayush-s-tomar/resume-screener-lora/actions/workflows/eval.yml)
 [![Tests](https://github.com/ayush-s-tomar/resume-screener-lora/actions/workflows/tests.yml/badge.svg)](https://github.com/ayush-s-tomar/resume-screener-lora/actions/workflows/tests.yml)
@@ -161,6 +165,29 @@ Accuracy falls from 88.5% on the held-out set to 44.4% here. The adapter is much
 <!-- dm-start -->
 **Demo features.** The hosted demo reads PDF, DOCX and text files (up to 3 MB; files are processed in memory and not stored), can mask emails, links, phone numbers and ID numbers before scoring (names and addresses are not masked), shows a **borderline** badge when the score is within 6 points of a verdict boundary (the margin comes from the analysis above, which measured the local adapter; the hosted model is not validated against it, and the badge says so), and has a Privacy panel that says what it keeps. The text is still sent to Groq to be scored, so use fictional text.
 <!-- dm-end -->
+
+<!-- pk-start -->
+### Install the command-line tools
+
+From a clone of this repository (the package is not published on PyPI):
+
+    pip install .                 # the command-line tools only, no model packages
+    pip install ".[files]"        # adds PDF support
+    pip install ".[model]"        # adds torch, transformers and peft to run the adapter
+
+    resume-screener --role "Backend Engineer" --resume-file resume.pdf --redact
+    resume-screener-parse resume.pdf --redact
+
+`resume-screener` loads the adapter from `./resume-screener-lora-adapter` if that folder exists, otherwise from the Hugging Face repository `Kus-hal/resume-screener-lora` (about 8 MB, plus the 0.5B base model on first use). Use `--adapter PATH_OR_HUB_ID` or the `RESUME_SCREENER_ADAPTER` environment variable to choose another.
+<!-- pk-end -->
+
+<!-- ru-start -->
+### Responsible use, name checks and privacy
+
+- [`docs/RESPONSIBLE_USE.md`](docs/RESPONSIBLE_USE.md): what this project is and is not for, what the evidence shows and does not show, and pointers to the rules that apply to hiring tools.
+- [`docs/BIAS_AUDIT.md`](docs/BIAS_AUDIT.md): the name-swap and boundary checks in one place, and what a real bias audit would need.
+- [`docs/PRIVACY.md`](docs/PRIVACY.md): what the hosted demo, the local adapter and the labelling form do with data.
+<!-- ru-end -->
 
 <!-- ns-start -->
 ### Name-swap sensitivity

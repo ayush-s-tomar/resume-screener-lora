@@ -1,0 +1,48 @@
+name: package
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "pyproject.toml"
+      - "*.py"
+      - "tests/**"
+      - "render-deploy/**"
+      - ".github/workflows/package.yml"
+  pull_request:
+    paths:
+      - "pyproject.toml"
+      - "*.py"
+      - "tests/**"
+      - "render-deploy/**"
+      - ".github/workflows/package.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: package-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  install-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install the package with the files, demo and dev extras
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ".[files,demo,dev]"
+      - name: The command-line tools start without the model packages
+        run: |
+          resume-screener --help
+          resume-screener-parse --help
+      - name: Run the tests that need pypdf and the demo packages
+        run: python -m pytest tests/test_resume_parser.py tests/test_borderline.py tests/test_inference_cli.py tests/test_packaging.py tests/test_demo_upload.py -q

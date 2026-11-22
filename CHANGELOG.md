@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
+- Packaging: `pyproject.toml` with the `resume-screener` and `resume-screener-parse` commands and optional extras, a `package` CI workflow that installs it from a clean environment, and an `--adapter` option with a Hugging Face fallback so the installed command works outside the repository folder.
+- Documentation: `docs/RESPONSIBLE_USE.md` (what the project is and is not for, the evidence, rules that apply to hiring tools), `docs/BIAS_AUDIT.md` (the name checks and what they do not show) and `docs/PRIVACY.md` (what the demo, the local adapter and the labelling form do with data), generated from the result files by `docs/build_docs.py`.
 - Demo: PDF, DOCX and text upload, an option to mask emails, links, phone numbers and ID numbers before scoring, a borderline badge and a Privacy panel (`render-deploy/app.py`, with tests).
 - Resume file support: `resume_parser.py` extracts text from PDF, DOCX and text files and masks emails, links, phone numbers and ID numbers (`inference.py --resume-file resume.pdf --redact`), with unit tests.
 - Borderline flag: `borderline.py` and `inference.py --margin` mark verdicts whose score is close to a verdict boundary (the default margin comes from `results/selective_v1.json`), with unit tests.

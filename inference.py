@@ -29,6 +29,19 @@ except ImportError:  # inference.py was copied on its own, without resume_parser
 
 BASE_MODEL = "Qwen/Qwen2.5-0.5B-Instruct"
 ADAPTER_PATH = "./resume-screener-lora-adapter"
+HF_ADAPTER = "Kus-hal/resume-screener-lora"
+
+
+def resolve_adapter(adapter=None):
+    """Which adapter to load: an explicit path or Hub id, then $RESUME_SCREENER_ADAPTER, then the local folder, then the Hub."""
+    import os
+
+    if adapter:
+        return adapter
+    env = os.environ.get("RESUME_SCREENER_ADAPTER")
+    if env:
+        return env
+    return ADAPTER_PATH if Path(ADAPTER_PATH).is_dir() else HF_ADAPTER
 
 EXAMPLE_RESUME = (
     "Bachelor's degree in Computer Science. 4 years of experience building "
@@ -36,16 +49,20 @@ EXAMPLE_RESUME = (
 )
 
 
-def load_model():
+def load_model(adapter=None):
     from transformers import AutoModelForCausalLM, AutoTokenizer
     from peft import PeftModel
 
-    tokenizer = AutoTokenizer.from_pretrained(ADAPTER_PATH)
+    path = resolve_adapter(adapter)
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(path)
+    except Exception:  # an adapter folder or repository without tokenizer files
+        tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL)
     try:
         base_model = AutoModelForCausalLM.from_pretrained(BASE_MODEL, dtype="auto", device_map="auto")
     except (TypeError, ValueError):  # older transformers versions only know torch_dtype
         base_model = AutoModelForCausalLM.from_pretrained(BASE_MODEL, torch_dtype="auto", device_map="auto")
-    model = PeftModel.from_pretrained(base_model, ADAPTER_PATH)
+    model = PeftModel.from_pretrained(base_model, path)
     model.eval()
     return model, tokenizer
 
@@ -84,6 +101,8 @@ def main(argv=None):
     ap.add_argument("--margin", type=float, default=None,
                     help="borderline margin in score points (default: from results/selective_v1.json; 0 turns the flag off)")
     ap.add_argument("--redact", action="store_true", help="mask emails, links, phone numbers and ID numbers before scoring")
+    ap.add_argument("--adapter", default=None,
+                    help="adapter folder or Hugging Face repository (default: ./resume-screener-lora-adapter if it exists, else Kus-hal/resume-screener-lora)")
     args = ap.parse_args(argv)
 
     if args.resume_file:
@@ -102,7 +121,7 @@ def main(argv=None):
         resume, counts = resume_parser.redact_pii(resume)
         print("Masked: " + (", ".join("%s %d" % (k, v) for k, v in counts.items()) or "nothing found"), file=sys.stderr)
 
-    model, tokenizer = load_model()
+    model, tokenizer = load_model(args.adapter)
     verdict = screen_resume(model, tokenizer, resume, role=args.role, margin=args.margin)
     print(json.dumps(verdict, indent=2))
 

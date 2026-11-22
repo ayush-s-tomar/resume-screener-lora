@@ -13,3 +13,6 @@ venv/
 merged-model/
 merged_model/
 labels/
+build/
+dist/
+*.egg-info/

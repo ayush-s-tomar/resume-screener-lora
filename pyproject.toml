@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "resume-screener-lora"
+version = "1.1"
+description = "A LoRA fine-tuned Qwen2.5-0.5B resume screener with an honest evaluation: command-line tools, resume file parsing and a borderline flag."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+authors = [{ name = "Ayush Singh Tomar" }]
+keywords = ["lora", "peft", "resume-screening", "evaluation", "qwen2.5"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = []
+
+[project.optional-dependencies]
+files = ["pypdf>=4"]
+model = ["torch", "transformers", "peft", "accelerate"]
+demo = ["fastapi", "groq", "uvicorn"]
+dev = ["pytest", "ruff", "httpx"]
+
+[project.urls]
+Homepage = "https://github.com/ayush-s-tomar/resume-screener-lora"
+Demo = "https://resume-screener-finetune.onrender.com/"
+Changelog = "https://github.com/ayush-s-tomar/resume-screener-lora/blob/main/CHANGELOG.md"
+
+[project.scripts]
+resume-screener = "inference:main"
+resume-screener-parse = "resume_parser:main"
+
+[tool.setuptools]
+py-modules = ["inference", "borderline", "resume_parser"]
