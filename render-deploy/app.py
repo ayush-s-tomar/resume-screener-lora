@@ -489,6 +489,9 @@ PAGE = r"""<!DOCTYPE html>
         .cols { grid-template-columns: 1fr; }
         .score { font-size: 38px; }
     }
+    .feedback { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 18px; padding-top: 14px; border-top: 1px solid #26263a; }
+    .feedback > span { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .feedback [hidden] { display: none; }
 </style>
 </head>
 <body>
@@ -577,8 +580,31 @@ PAGE = r"""<!DOCTYPE html>
                 <pre id="raw"></pre>
                 <button class="ghost" id="copyBtn" type="button" onclick="copyRaw()">Copy JSON</button>
             </details>
+            <div class="feedback" id="fb">
+                <span class="meta">Was this result useful?</span>
+                <span id="fbBtns">
+                    <button class="ghost" type="button" onclick="sendFeedback('up')">&#128077; Yes</button>
+                    <button class="ghost" type="button" onclick="sendFeedback('down')">&#128078; No</button>
+                </span>
+                <span id="fbReasons" hidden>
+                    <span class="meta">What was wrong?</span>
+                    <button class="ghost" type="button" onclick="sendFeedback('down', 'too_high')">Score too high</button>
+                    <button class="ghost" type="button" onclick="sendFeedback('down', 'too_low')">Score too low</button>
+                    <button class="ghost" type="button" onclick="sendFeedback('down', 'wrong_skills')">Skills wrong</button>
+                    <button class="ghost" type="button" onclick="sendFeedback('down', 'other')">Other</button>
+                    <button class="ghost" type="button" onclick="sendFeedback('down', '')">Skip</button>
+                </span>
+                <span class="meta" id="fbMsg"></span>
+            </div>
         </div>
     </div>
+
+    <details class="panel" id="usage">
+        <summary>Usage statistics and feedback</summary>
+        <div class="how-body">
+            To see whether this demo is useful, the server counts screenings, file uploads and the thumbs-up or thumbs-down you can give a result. An event records only the kind of event, a hash of your address that changes every day (so visitors can be counted but not followed or identified), a coarse role group (such as backend or data), the score and verdict, and whether the cache, the borderline badge or the mask option was used. It never records resume text, file contents or your address, and the feedback buttons have no free-text box. Counts are kept in the server&rsquo;s memory and reset when it restarts; if durable storage is configured on the host, events are also stored in a database table. Aggregate counts are public at <a href="/stats">/stats</a>.
+        </div>
+    </details>
 
     <footer>Demo scored via Groq (gpt-oss-20b). The trained LoRA adapter runs locally, see the <a href="https://github.com/ayush-s-tomar/resume-screener-lora" target="_blank" rel="noopener">GitHub repo</a></footer>
 </div>
@@ -647,6 +673,43 @@ function loadExample(key) {
     $('role').value = ex.role;
     $('resume').value = ex.text;
     $('resume').focus();
+}
+
+let fbSent = false;
+
+function resetFeedback() {
+    fbSent = false;
+    $('fbMsg').textContent = '';
+    $('fbReasons').hidden = true;
+    $('fbBtns').hidden = false;
+}
+
+async function sendFeedback(rating, reason) {
+    if (rating === 'down' && reason === undefined) {
+        $('fbReasons').hidden = false;
+        return;
+    }
+    if (fbSent) return;
+    fbSent = true;
+    const sc = parseInt($('scoreNum').textContent, 10);
+    try {
+        const res = await fetch('/feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                rating: rating,
+                reason: reason || '',
+                score: isNaN(sc) ? -1 : sc,
+                verdict: $('verdict').textContent.trim().replace(/ /g, '_'),
+                role: $('role').value.trim()
+            })
+        });
+        $('fbMsg').textContent = res.ok ? 'Thanks, noted.' : 'Could not send feedback.';
+    } catch (e) {
+        $('fbMsg').textContent = 'Could not send feedback.';
+    }
+    $('fbBtns').hidden = true;
+    $('fbReasons').hidden = true;
 }
 
 function verdictClass(v) {
@@ -724,6 +787,7 @@ async function scoreResume() {
     const text = $('resume').value.trim();
     const role = $('role').value.trim() || 'Software Engineer';
     const btn = $('btn');
+    resetFeedback();
     $('out').hidden = true;
 
     if (!text) {
@@ -815,6 +879,188 @@ $('resume').addEventListener('keydown', (e) => {
 @app.get("/", response_class=HTMLResponse)
 def home():
     return PAGE
+
+
+# ---------------------------------------------------------------------------
+# Usage counters and feedback. An event holds its kind, a visitor hash that changes every day, a coarse role group, the score and
+# verdict and yes/no flags. It never holds resume text, file contents or an IP address. Counters live in memory (they reset when the
+# free instance restarts). If DEMO_SUPABASE_URL and DEMO_SUPABASE_KEY (an insert-only key) are set, events are also stored in a table.
+# ---------------------------------------------------------------------------
+import urllib.request as _urlrequest  # noqa: E402
+
+EVENT_TABLE = os.environ.get("DEMO_SUPABASE_TABLE", "demo_events")
+SUPABASE_URL = os.environ.get("DEMO_SUPABASE_URL", "").rstrip("/")
+SUPABASE_KEY = os.environ.get("DEMO_SUPABASE_KEY", "")
+STATS_SALT = os.environ.get("DEMO_STATS_SALT") or os.urandom(8).hex()
+FEEDBACK_LIMIT = _env_int("DEMO_FEEDBACK_LIMIT", 20)
+FEEDBACK_REASONS = ("too_high", "too_low", "wrong_skills", "other")
+ALLOWED_COLUMNS = ("kind", "visitor", "role_bucket", "score", "verdict", "cached", "borderline", "masked", "rating", "reason")
+STAT_KEYS = ("scores", "cache_hits", "uploads", "masked", "borderline", "up", "down")
+
+STATS = {"since": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "days": {}}
+RECENT_EVENTS = deque(maxlen=200)
+FEEDBACK_RATE = {}
+
+_ROLE_PATTERNS = [
+    (re.compile(pattern), bucket)
+    for pattern, bucket in (
+        (r"back[- ]?end", "backend"),
+        (r"front[- ]?end", "frontend"),
+        (r"dev[- ]?ops|\bsre\b|site reliability", "devops"),
+        (r"\bdata\b", "data"),
+        (r"\bai\b|\bml\b|machine learning|\bllm\b", "ai"),
+        (r"software|developer|engineer|programmer", "software"),
+    )
+]
+
+
+def role_bucket(role):
+    """A coarse role group, so that free text typed into the role box is never stored."""
+    text = (role or "").lower()
+    for pattern, bucket in _ROLE_PATTERNS:
+        if pattern.search(text):
+            return bucket
+    return "other"
+
+
+def visitor_hash(ip, now):
+    day = time.strftime("%Y-%m-%d", time.gmtime(now))
+    return hashlib.sha256(("%s|%s|%s" % (ip, day, STATS_SALT)).encode("utf-8")).hexdigest()[:12]
+
+
+def _day_bucket(day):
+    bucket = STATS["days"].get(day)
+    if bucket is None:
+        bucket = {key: 0 for key in STAT_KEYS}
+        bucket["visitors"] = set()
+        STATS["days"][day] = bucket
+        while len(STATS["days"]) > 30:
+            STATS["days"].pop(min(STATS["days"]))
+    return bucket
+
+
+def _post_event(event):
+    try:
+        row = {key: event[key] for key in ALLOWED_COLUMNS if key in event}
+        req = _urlrequest.Request(
+            "%s/rest/v1/%s" % (SUPABASE_URL, EVENT_TABLE),
+            data=json.dumps(row).encode("utf-8"),
+            headers={"apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY, "Content-Type": "application/json", "Prefer": "return=minimal"},
+            method="POST",
+        )
+        _urlrequest.urlopen(req, timeout=5).read()
+    except Exception as exc:
+        logger.info("event store failed: %s", type(exc).__name__)
+
+
+def record_event(kind, ip, now=None, **fields):
+    now = time.time() if now is None else now
+    event = {"kind": kind, "visitor": visitor_hash(ip, now)}
+    for key in ("role_bucket", "score", "verdict", "cached", "borderline", "masked", "rating", "reason"):
+        if fields.get(key) is not None:
+            event[key] = fields[key]
+    day = time.strftime("%Y-%m-%d", time.gmtime(now))
+    with LOCK:
+        bucket = _day_bucket(day)
+        if len(bucket["visitors"]) < 5000:
+            bucket["visitors"].add(event["visitor"])
+        if kind == "score":
+            bucket["scores"] += 1
+            bucket["cache_hits"] += int(bool(event.get("cached")))
+            bucket["masked"] += int(bool(event.get("masked")))
+            bucket["borderline"] += int(bool(event.get("borderline")))
+        elif kind == "upload":
+            bucket["uploads"] += 1
+        elif kind == "feedback" and event.get("rating") in ("up", "down"):
+            bucket[event["rating"]] += 1
+        RECENT_EVENTS.append(event)
+    logger.info("event %s", json.dumps(event, sort_keys=True))
+    if SUPABASE_URL and SUPABASE_KEY:
+        threading.Thread(target=_post_event, args=(dict(event),), daemon=True).start()
+
+
+def check_feedback_limit(ip, now):
+    with LOCK:
+        hits = FEEDBACK_RATE.setdefault(ip, deque())
+        while hits and now - hits[0] > RATE_WINDOW:
+            hits.popleft()
+        if len(hits) >= FEEDBACK_LIMIT:
+            retry = int(RATE_WINDOW - (now - hits[0])) + 1
+            raise HTTPException(status_code=429, detail="Thank you, that is enough feedback for now. Please try again in %d seconds." % retry,
+                                headers={"Retry-After": str(retry)})
+        hits.append(now)
+        if len(FEEDBACK_RATE) > 5000:
+            for stale in [k for k, v in FEEDBACK_RATE.items() if not v or now - v[-1] > RATE_WINDOW]:
+                FEEDBACK_RATE.pop(stale, None)
+
+
+class FeedbackRequest(BaseModel):
+    rating: str = Field(max_length=8)
+    reason: str = Field(default="", max_length=20)
+    score: int = -1
+    verdict: str = Field(default="", max_length=20)
+    role: str = Field(default="", max_length=100)
+
+
+@app.post("/feedback")
+def feedback(req: FeedbackRequest, request: Request):
+    if req.rating not in ("up", "down"):
+        raise HTTPException(status_code=422, detail="rating must be 'up' or 'down'.")
+    reason = req.reason or None
+    if reason is not None and reason not in FEEDBACK_REASONS:
+        raise HTTPException(status_code=422, detail="Unknown reason.")
+    ip = client_ip(request)
+    now = time.time()
+    check_feedback_limit(ip, now)
+    record_event("feedback", ip, now, rating=req.rating, reason=reason, role_bucket=role_bucket(req.role),
+                 score=req.score if 0 <= req.score <= 100 else None, verdict=req.verdict if req.verdict in VERDICTS else None)
+    return {"ok": True}
+
+
+@app.get("/stats")
+def stats():
+    """Aggregate counts only: no events, no visitor hashes."""
+    with LOCK:
+        days = {day: dict({key: b[key] for key in STAT_KEYS}, visitors=len(b["visitors"])) for day, b in STATS["days"].items()}
+    today = time.strftime("%Y-%m-%d", time.gmtime())
+    totals = {key: sum(d[key] for d in days.values()) for key in STAT_KEYS}
+    totals["visitor_days"] = sum(d["visitors"] for d in days.values())
+    return {
+        "since": STATS["since"],
+        "durable_storage": bool(SUPABASE_URL and SUPABASE_KEY),
+        "today": days.get(today, {}),
+        "totals": totals,
+        "note": "Counts since the server last restarted (at most the last 30 days). A visitor is counted once per day; the visitor hash changes daily.",
+    }
+
+
+@app.middleware("http")
+async def usage_events(request: Request, call_next):
+    response = await call_next(request)
+    path = request.url.path
+    if response.status_code != 200 or path not in ("/score", "/extract"):
+        return response
+    ip = client_ip(request)
+    if path == "/extract":
+        record_event("upload", ip)
+        return response
+    body = b"".join([chunk async for chunk in response.body_iterator])
+    try:
+        data = json.loads(body)
+        verdict = data.get("verdict_json") or {}
+        info = data.get("borderline")
+        record_event(
+            "score", ip,
+            role_bucket=role_bucket(verdict.get("role")),
+            score=int(verdict["ats_score"]),
+            verdict=verdict.get("verdict"),
+            cached=bool(data.get("cached")),
+            borderline=bool(info.get("is_borderline")) if isinstance(info, dict) else None,
+            masked=data.get("masked") is not None,
+        )
+    except Exception as exc:
+        logger.info("event parse failed: %s", type(exc).__name__)
+    return Response(content=body, status_code=response.status_code, headers=dict(response.headers), media_type=response.media_type)
 
 
 @app.get("/health")

@@ -166,6 +166,10 @@ Accuracy falls from 88.5% on the held-out set to 44.4% here. The adapter is much
 **Demo features.** The hosted demo reads PDF, DOCX and text files (up to 3 MB; files are processed in memory and not stored), can mask emails, links, phone numbers and ID numbers before scoring (names and addresses are not masked), shows a **borderline** badge when the score is within 6 points of a verdict boundary (the margin comes from the analysis above, which measured the local adapter; the hosted model is not validated against it, and the badge says so), and has a Privacy panel that says what it keeps. The text is still sent to Groq to be scored, so use fictional text.
 <!-- dm-end -->
 
+<!-- fb-start -->
+**Feedback and usage counters.** The demo asks whether a result was useful (thumbs up or down, with an optional fixed reason) and counts screenings, file uploads and ratings, so there is some evidence of real use. An event holds only its kind, a hash of the visitor's address that changes every day, a coarse role group, the score and verdict and yes/no flags; it never holds resume text, file contents or an address. Aggregate counts since the last restart are public at `/stats`, and `usage_report.py` summarises the stored events if a database is configured.
+<!-- fb-end -->
+
 <!-- pk-start -->
 ### Install the command-line tools
 
