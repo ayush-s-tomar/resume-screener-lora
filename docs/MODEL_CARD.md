@@ -23,7 +23,7 @@ A LoRA adapter for `Qwen/Qwen2.5-0.5B-Instruct` that reads a resume and a target
 
 ## Training data
 
-800 synthetic training examples and 96 held-out synthetic examples, produced by a template-based generator with a written rubric. **The labels are the generator's, not human judgments.** The data is not published yet.
+800 synthetic training examples and 96 held-out synthetic examples, produced by a template-based generator with a written rubric. **The labels are the generator's, not human judgments.** The data is published as [Kus-hal/resume-screener-synthetic](https://huggingface.co/datasets/Kus-hal/resume-screener-synthetic), together with the 36 hand-authored resumes.
 
 ## Intended use
 

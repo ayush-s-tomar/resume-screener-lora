@@ -1,3 +1,5 @@
+> Published at https://huggingface.co/datasets/Kus-hal/resume-screener-synthetic. This copy is kept in the repository so it is versioned with the code and the data.
+
 # resume-screener-synthetic
 
 Synthetic training and test data for [resume-screener-lora](https://github.com/ayush-s-tomar/resume-screener-lora), a LoRA adapter that reads a resume and a target role and returns a structured JSON verdict (adapter: https://huggingface.co/Kus-hal/resume-screener-lora). Every resume here is synthetic or fictional; no real person's resume or personal data was used.

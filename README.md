@@ -170,6 +170,10 @@ Accuracy falls from 88.5% on the held-out set to 44.4% here. The adapter is much
 **Feedback and usage counters.** The demo asks whether a result was useful (thumbs up or down, with an optional fixed reason) and counts screenings, file uploads and ratings, so there is some evidence of real use. An event holds only its kind, a hash of the visitor's address that changes every day, a coarse role group, the score and verdict and yes/no flags; it never holds resume text, file contents or an address. Aggregate counts since the last restart are public at `/stats`, and `usage_report.py` summarises the stored events if a database is configured.
 <!-- fb-end -->
 
+<!-- ds-start -->
+**Data.** The synthetic training set (800 rows), the held-out set (96) and the 36 hand-authored resumes are published at https://huggingface.co/datasets/Kus-hal/resume-screener-synthetic with a dataset card ([`docs/DATASET_CARD.md`](docs/DATASET_CARD.md)). All resumes are synthetic or fictional, and the labels are a generator's rubric and an AI-drafted rubric, not human judgments.
+<!-- ds-end -->
+
 <!-- pk-start -->
 ### Install the command-line tools
 
