@@ -5,7 +5,7 @@ Thanks for your interest in resume-screener-lora. It is a small research and por
 ## Ground rules
 
 - **No real resumes or personal data** in issues, pull requests or test fixtures. Use fictional resumes only.
-- **Keep the numbers honest.** If a change affects a metric, update the matching file in `results/` and the README section that quotes it in the same pull request, and say how you measured it. Negative results are welcome.
+- **Keep the numbers honest.** If a change affects a metric, update the matching file in `results/` and the README section that quotes it in the same pull request, and say how you measured it. Negative results are welcome. `tests/test_readme_numbers.py` checks on every push that the numbers in the README and the model card still match `results/`.
 - **Keep pull requests small and focused.** One change per pull request is easier to review.
 
 ## Development setup
