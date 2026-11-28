@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "title": "Resume checker pilot: a 10-minute survey",
+  "intro": [
+    "I am a B.Tech student building a small research project, a resume screening model called resume-screener-lora. I would like to know whether it is useful to students who are about to apply for jobs, and where it is wrong.",
+    "What you do (about 10 minutes): open the demo at https://resume-screener-finetune.onrender.com, choose one of the sample resumes or paste your own resume with the mask option ticked (names and addresses are not masked, so remove them if you prefer), decide what you expect BEFORE you press the button, run it, then answer this form.",
+    "Your data: this form asks for no name, email or phone number and keeps nothing on a server. Your answers stay in your browser until you download a small file and send it to me. I will publish only combined results. Please do not write personal details in the comment box. The file has no name on it, so I cannot remove your answers once you have sent it; if you change your mind, simply do not send the file.",
+    "The demo sends the text you submit to a third-party service (Groq) to be scored; its Privacy panel explains what is kept. If you are not comfortable using your own resume, use a sample one: that is just as useful to me.",
+    "This is a research demo, not a hiring tool. Its scores can be wrong, and they say nothing about your worth or your chances. Taking part is voluntary and you can stop at any time."
+  ],
+  "consent": "I am 18 or older, I have read the above, I understand that this is a student research project and that taking part is voluntary, and I agree that my answers (which contain no name or contact details) are combined with others and published as aggregate results.",
+  "questions": [
+    {"id": "year", "type": "choice", "label": "Which year of study are you in?", "required": false,
+     "options": [["1", "1st year"], ["2", "2nd year"], ["3", "3rd year"], ["4", "4th year"], ["grad", "Already graduated"], ["other", "Other"]]},
+    {"id": "role_family", "type": "choice", "label": "Which kind of role did you try?", "required": true,
+     "options": [["backend", "Backend"], ["frontend", "Frontend"], ["data", "Data"], ["ai", "AI or machine learning"], ["devops", "DevOps"], ["software", "General software developer"], ["other", "Something else"]]},
+    {"id": "resume_used", "type": "choice", "label": "Which resume did you use?", "required": true,
+     "options": [["own_masked", "My own, with the mask option on"], ["own_unmasked", "My own, without the mask option"], ["sample", "One of the sample (fictional) resumes"], ["fictional", "Another fictional resume I wrote or found"]]},
+    {"id": "input_method", "type": "choice", "label": "How did the text get into the demo?", "required": true,
+     "options": [["sample_button", "With a sample button"], ["pasted", "I pasted text"], ["uploaded", "I uploaded a file"]]},
+    {"id": "self_fit", "type": "choice", "label": "BEFORE you pressed the button: how well did you think this resume fits the role you entered?", "required": true,
+     "help": "Please answer this before you look at the result.",
+     "options": [["strong", "A strong fit"], ["moderate", "A moderate fit"], ["weak", "A weak fit"], ["unsure", "I am not sure"]]},
+    {"id": "score", "type": "number", "label": "The score shown (0 to 100)", "required": true, "min": 0, "max": 100},
+    {"id": "verdict", "type": "choice", "label": "The verdict shown", "required": true,
+     "options": [["strong", "Strong match"], ["moderate", "Moderate match"], ["weak", "Weak match"]]},
+    {"id": "badge", "type": "choice", "label": "Did you see a 'borderline' badge on the result?", "required": false,
+     "options": [["yes", "Yes"], ["no", "No, the result had no badge"], ["none_exists", "I did not see any badge feature on the page"]]},
+    {"id": "l_verdict", "type": "scale", "label": "The verdict matched my own judgement.", "required": true, "min": 1, "max": 5, "low": "strongly disagree", "high": "strongly agree"},
+    {"id": "l_matched", "type": "scale", "label": "The matched skills it listed were correct.", "required": true, "min": 1, "max": 5, "low": "strongly disagree", "high": "strongly agree"},
+    {"id": "l_missing", "type": "scale", "label": "The missing skills it listed were useful to me (things I lack or should add).", "required": true, "min": 1, "max": 5, "low": "strongly disagree", "high": "strongly agree"},
+    {"id": "l_new", "type": "scale", "label": "The result told me something I did not already know.", "required": true, "min": 1, "max": 5, "low": "strongly disagree", "high": "strongly agree"},
+    {"id": "l_again", "type": "scale", "label": "I would use a tool like this again to check a resume before applying.", "required": true, "min": 1, "max": 5, "low": "strongly disagree", "high": "strongly agree"},
+    {"id": "comfort", "type": "choice", "label": "How did the result make you feel about your resume?", "required": true,
+     "options": [["more_confident", "More confident"], ["no_change", "No change"], ["a_bit_worried", "A bit worried"], ["discouraged", "Discouraged"]]},
+    {"id": "trust_decisions", "type": "choice", "label": "Would you trust a tool like this to decide who gets an interview?", "required": true,
+     "options": [["yes", "Yes"], ["no", "No"], ["unsure", "Not sure"]]},
+    {"id": "comment", "type": "text", "label": "Anything that looked wrong or confusing? (No personal details, please.)", "required": false, "max": 300}
+  ]
+}

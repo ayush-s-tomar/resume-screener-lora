@@ -1,0 +1,9 @@
+Hi! I'm testing a small resume checker I built (a research project, not a product) and I'd really value 10 minutes of your honest feedback, especially if you're about to apply for internships or jobs.
+
+What to do:
+1. Open https://resume-screener-finetune.onrender.com (it can take up to a minute to wake up).
+2. Pick one of the sample resumes, or paste your own with the "mask" option ticked.
+3. Before you press the button, decide how well you think the resume fits the role. Then run it and look at the score and the skills lists.
+4. Open the attached file survey.html in your browser (Chrome or Edge), answer the questions, click "Download my answers", and send me the small file.
+
+It is completely voluntary and anonymous: there is no name or email in the form, and I will publish only combined results. The demo sends the text to a third-party service (Groq), so use a sample resume if you'd rather not use your own. The scores can be wrong, and they say nothing about your worth or your chances. Thank you!

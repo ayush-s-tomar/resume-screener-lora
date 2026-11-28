@@ -16,3 +16,4 @@ labels/
 build/
 dist/
 *.egg-info/
+pilot/responses/
